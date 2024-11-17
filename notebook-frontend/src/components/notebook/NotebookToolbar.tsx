@@ -189,6 +189,7 @@ export function NotebookToolbar({
       <Sheet open={isCodeSheetOpen} onOpenChange={setIsCodeSheetOpen}>
         <SheetContent side='right' className='w-3/4 sm:max-w-3/4'>
           <SheetHeader>
+            <SheetTitle>All Code View</SheetTitle>
             <div className='flex flex-row gap-2 py-4'>
               <Button>All Code</Button>
             </div>
@@ -196,7 +197,17 @@ export function NotebookToolbar({
           <MonacoEditor
             value={allCode}
             language="python"
-            options={{ readOnly: true }}
+            options={{ 
+              readOnly: true,
+              minimap: { enabled: false },
+              lineNumbers: 'on',
+              wordWrap: 'on',
+              tabSize: 4,
+              insertSpaces: true,
+              fontSize: 14,
+              scrollBeyondLastLine: false,
+              automaticLayout: true,
+            }}
             height="90vh"
           />
         </SheetContent>
