@@ -90,7 +90,7 @@ export function NotebookToolbar({
   const handleRestartKernel = async () => {
     setIsRestarting(true);
     try {
-      await onRestartKernel();
+      await onRestartKernel?.();
     } finally {
       setIsRestarting(false);
     }
@@ -190,9 +190,9 @@ export function NotebookToolbar({
         <SheetContent side='right' className='w-3/4 sm:max-w-3/4'>
           <SheetHeader>
             <SheetTitle>All Code View</SheetTitle>
-            <div className='flex flex-row gap-2 py-4'>
+            {/* <div className='flex flex-row gap-2 py-4'>
               <Button>All Code</Button>
-            </div>
+            </div> */}
           </SheetHeader>
           <MonacoEditor
             value={allCode}
@@ -234,7 +234,7 @@ export function NotebookToolbar({
 
       <Button
         variant="outline"
-        className="gap-2"
+        className="justify-end gap-2"
         onClick={() => showAllCode()}
         disabled={allCells.length === 0}
       >

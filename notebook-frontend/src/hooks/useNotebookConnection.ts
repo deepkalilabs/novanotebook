@@ -1,7 +1,7 @@
 // hooks/useNotebookConnection.ts
 'use client';
 
-import { useCallback } from 'react';
+import { useCallback, useRef, useEffect } from 'react';
 import useWebSocket, { ReadyState } from 'react-use-websocket';
 import { v4 as uuidv4 } from 'uuid';
 import { NotebookCell } from '@/app/types';
@@ -19,8 +19,24 @@ export function useNotebookConnection({
   onNotebookSaved,
   onError
 }: NotebookConnectionProps) {
-  const sessionId = uuidv4();
+  const sessionId = useRef(uuidv4()).current;
   const socketUrl = `ws://localhost:8000/ws/${sessionId}`;
+
+  const callbackRef = useRef({
+    onOutput,
+    onNotebookLoaded,
+    onNotebookSaved,
+    onError
+  });
+
+  useEffect(() => {
+    callbackRef.current = {
+      onOutput,
+      onNotebookLoaded,
+      onNotebookSaved,
+      onError
+    };
+  }, [onOutput, onNotebookLoaded, onNotebookSaved, onError]);
 
   const {
     sendMessage,
@@ -35,32 +51,26 @@ export function useNotebookConnection({
     reconnectInterval: 3000,
   });
 
-  const handleMessage = useCallback((message: string) => {
-    try {
-      const data = JSON.parse(message);
-      
+  useEffect(() => {
+    if (lastMessage !== null) {
+      const data = JSON.parse(lastMessage.data);
       switch (data.type) {
         case 'output':
-          onOutput(data.cellId, data.output);
+          console.log(`Received output: ${data.output}, type: ${typeof data.output}, cellId: ${data.cellId}`);
+          callbackRef.current.onOutput(data.cellId, data.output);
           break;
         case 'notebook_loaded':
-          onNotebookLoaded?.(data.cells);
+          callbackRef.current.onNotebookLoaded?.(data.cells);
           break;
         case 'notebook_saved':
-          onNotebookSaved?.();
+          callbackRef.current.onNotebookSaved?.();
           break;
         case 'error':
-          onError?.(data.message);
+          callbackRef.current.onError?.(data.message);
           break;
       }
-    } catch (error) {
-      console.error('Failed to parse WebSocket message:', error);
     }
-  }, [onOutput, onNotebookLoaded, onNotebookSaved, onError]);
-
-  if (lastMessage !== null) {
-    handleMessage(lastMessage.data);
-  }
+  }, [lastMessage]);
 
   const executeCode = useCallback((cellId: string, code: string) => {
     sendMessage(JSON.stringify({

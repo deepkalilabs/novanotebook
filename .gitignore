@@ -79,3 +79,8 @@ logs
 
 # Yarn Integrity file
 .yarn-integrity
+
+.venv
+venv/*
+*/venv
+venv
