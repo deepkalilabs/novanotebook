@@ -1,5 +1,4 @@
-// components/notebook/NotebookPage.tsx
-import { useCallback, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useNotebookStore } from '@/app/store';
 import { useNotebookConnection } from '@/hooks/useNotebookConnection';
@@ -14,7 +13,7 @@ export default function NotebookPage() {
     executeCode,
     saveNotebook,
     loadNotebook,
-    restartKernel,
+    //restartKernel,
     isConnected,
     connectionStatus
   } = useNotebookConnection({
