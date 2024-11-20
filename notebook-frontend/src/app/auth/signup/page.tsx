@@ -1,6 +1,5 @@
 'use client';
 import { useState } from 'react'
-import { signIn } from "next-auth/react"
 import Link from 'next/link'
 import { Button } from "@/components/ui/button"
 import {
@@ -16,6 +15,7 @@ import { Label } from "@/components/ui/label"
 import { Icons } from "@/components/ui/icons"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { supabase } from '@/lib/supabase';
+import { AuthError } from '@supabase/supabase-js';
 
 interface SignUpData {
   email: string
@@ -60,7 +60,6 @@ export default function SignUp() {
     }
 
     try {
-      
       const { error: signupError } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
@@ -83,12 +82,29 @@ export default function SignUp() {
     }
   }
 
-  const handleGoogleSignin = async () => {
+  const handleGoogleSignup = async () => {
     setIsLoading(true);
     setError(null);
-    await signIn('google', { callbackUrl: '/main' });
-  }
-
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          },
+        }
+      });
+      
+      if (error) throw error;
+    } catch (error) {
+      const err = error as AuthError;
+      setError(err.message);
+      setIsLoading(false);
+    }
+  };
+  
   return (
     <div className="flex min-h-screen items-center justify-center p-4">
       <Card className="w-full max-w-md">
@@ -160,7 +176,7 @@ export default function SignUp() {
               variant="outline"
               type="button"
               disabled={isLoading}
-              onClick={handleGoogleSignin}
+              onClick={handleGoogleSignup}
               className="w-full"
             >
               {isLoading ? (
