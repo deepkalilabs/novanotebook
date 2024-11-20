@@ -27,3 +27,22 @@ export interface ApiResponse {
     cells: NotebookCell[];
   };
 }
+
+export interface OutputExecutionMessage {
+    type: string;
+    cellId: string;
+    output: string;
+}
+
+export interface OutputSaveMessage {
+    type: string;
+    success: boolean;
+    message: string;
+}
+
+export interface OutputLoadMessage {
+    type: string;
+    success: boolean;
+    message: string;
+    cells: any[];
+}
