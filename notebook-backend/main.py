@@ -5,7 +5,7 @@ import json
 from jupyter_client import KernelManager
 import os
 from pydantic import BaseModel
-
+import ssl
 app = FastAPI()
 
 class OutputExecutionMessage(BaseModel):
@@ -140,6 +140,13 @@ async def deploy_app(data: dict):
 if __name__ == "__main__":
     if not os.path.exists('notebooks'):
         os.makedirs('notebooks')
+
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(
+        "main:app", 
+        host="0.0.0.0", 
+        port=8000,
+        reload=True
+    )
+    
 
