@@ -22,10 +22,14 @@ export function useNotebookConnection({
   onError
 }: NotebookConnectionProps) {
   const sessionId = useRef(uuidv4()).current;
-  const socketURL = process.env.AWS_EC2_IP || '0.0.0.0';
-  const port = process.env.AWS_EC2_PORT || '8000';
+  const socketURL = process.env.NEXT_PUBLIC_AWS_EC2_IP || '0.0.0.0';
+  const port = process.env.NEXT_PUBLIC_AWS_EC2_PORT || '8000';
+
+  const socketUrl = `wss://${socketURL}:${port}/ws/${sessionId}`;
   
-  const socketUrl = `ws://${socketURL}:${port}/ws/${sessionId}`;
+  if (port === '8000') {
+    console.log(`Socket URL: ${socketUrl}, sessionId: ${sessionId}, port: ${port}, socketURL: ${socketURL}`);
+  }
 
   const callbackRef = useRef({
     onOutput,
