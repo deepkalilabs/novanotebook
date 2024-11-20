@@ -11,7 +11,7 @@ import { OutputExecutionMessage, OutputSaveMessage, OutputLoadMessage } from '@/
 interface NotebookConnectionProps {
   onOutput: (cellId: string, output: string) => void;
   onNotebookLoaded: (cells: NotebookCell[]) => void;
-  onNotebookSaved: (data: any) => void;
+  onNotebookSaved: (data: OutputSaveMessage) => void;
   onError?: (error: string) => void;
 }
 

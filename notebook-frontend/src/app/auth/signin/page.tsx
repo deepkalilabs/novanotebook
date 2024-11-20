@@ -167,7 +167,7 @@ export default function SignIn() {
           </CardFooter>
         </form>
         <div className="text-center text-sm text-muted-foreground mb-6">
-          Don't have an account?{" "}
+          No account?{" "}
           <Button variant="link" asChild className="px-2 text-sm underline-offset-4 hover:underline">
             <Link href="/auth/signup">
               Sign up

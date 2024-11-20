@@ -6,10 +6,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Save, Loader2 } from 'lucide-react';
 import { DialogFooter } from '@/components/ui/dialog';
-import { toast } from '@/hooks/use-toast';
 
 interface SaveNotebookButtonProps {
-  onHandleSave: (filename: string) => Promise<any>;
+  onHandleSave: (filename: string) => Promise<unknown>;
 }
 
 export function SaveNotebookButton({ onHandleSave }: SaveNotebookButtonProps) {

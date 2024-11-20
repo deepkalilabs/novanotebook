@@ -1,7 +1,7 @@
 'use client'
 import React from 'react';
 import { Button } from "@/components/ui/button"
-import { ChevronRight, Bot, MessageSquare, Code } from 'lucide-react';
+import { MessageSquare, Code } from 'lucide-react';
 import Link from 'next/link';
 
 export default function Home() {
@@ -37,12 +37,6 @@ export default function Home() {
               </Button>
             </Link>
           </div>
-          
-          {/* Terms Text 
-          <p className="text-sm text-muted-foreground">
-            Try free for 3 days, no credit card required. By entering your email, you agree to receive marketing emails.
-          </p>
-          */}
         </div>
 
 
@@ -104,9 +98,7 @@ export default function Home() {
           </div>
         </div>
         */}
-
       </div>
-
     </div>
   )
 }

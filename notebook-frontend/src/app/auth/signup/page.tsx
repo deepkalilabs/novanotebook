@@ -22,10 +22,6 @@ interface SignUpData {
   password: string
 }
 
-interface ApiError {
-  detail?: string;
-  [key: string]: string | undefined;
-}
 
 export default function SignUp() {
   const [formData, setFormData] = useState<SignUpData>({

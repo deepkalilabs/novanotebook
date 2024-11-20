@@ -1,5 +1,7 @@
 import React, { useCallback, useRef } from 'react';
 import dynamic from 'next/dynamic';
+import { editor } from 'monaco-editor';
+import { Monaco } from '@monaco-editor/react';
 
 // Dynamically import Monaco Editor with no SSR and no loading state
 const MonacoEditor = dynamic(() => import('@monaco-editor/react'), {
@@ -24,9 +26,8 @@ const ExecutableEditor: React.FC<ExecutableEditorProps> = ({
   height = "200px",
   language = "python"
 }) => {
-  const editorRef = useRef(null);
-
-  const handleEditorMount = useCallback((editor: any, monaco: any) => {
+  const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
+  const handleEditorMount = useCallback((editor: editor.IStandaloneCodeEditor, monaco: Monaco) => {
     editorRef.current = editor;
 
     editor.addCommand(
@@ -56,16 +57,16 @@ const ExecutableEditor: React.FC<ExecutableEditorProps> = ({
 
   const editorOptions = {
     minimap: { enabled: false },
-    lineNumbers: 'on',
-    wordWrap: 'on',
+    lineNumbers: 'on' as const,
+    wordWrap: 'on' as const,
     tabSize: 4,
     insertSpaces: true,
     fontSize: 14,
     scrollBeyondLastLine: false,
     automaticLayout: true,
     suggestOnTriggerCharacters: true,
-    acceptSuggestionOnEnter: 'on',
-    tabCompletion: 'on',
+    acceptSuggestionOnEnter: 'on' as const,
+    tabCompletion: 'on' as const,
     scrollbar: {
       verticalScrollbarSize: 10,
       verticalSliderSize: 10
@@ -81,7 +82,7 @@ const ExecutableEditor: React.FC<ExecutableEditorProps> = ({
         onChange={(value: string | undefined) => onCodeChange(value || '')}
         onMount={handleEditorMount}
         options={editorOptions}
-        loading=""
+        loading={null}
       />
       {isExecuting && (
         <div className="absolute top-0 right-0 m-2 px-2 py-1 bg-blue-500 text-white text-sm rounded">

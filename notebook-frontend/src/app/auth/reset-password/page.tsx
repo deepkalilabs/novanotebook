@@ -61,9 +61,9 @@ export default function ResetPasswordPage() {
 
       // Password updated successfully
       router.push('/auth/signin?message=Password updated successfully')
-    } catch (err: any) {
+    } catch (err) {
       console.error('Error updating password:', err)
-      setError(err.message || 'Failed to update password. Please try again.')
+      setError('Failed to update password. Please try again.')
     } finally {
       setIsLoading(false)
     }

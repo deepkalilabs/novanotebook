@@ -44,5 +44,5 @@ export interface OutputLoadMessage {
     type: string;
     success: boolean;
     message: string;
-    cells: any[];
+    cells: NotebookCell[];
 }
