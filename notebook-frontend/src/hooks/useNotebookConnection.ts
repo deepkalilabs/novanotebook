@@ -5,11 +5,13 @@ import { useCallback, useRef, useEffect } from 'react';
 import useWebSocket, { ReadyState } from 'react-use-websocket';
 import { v4 as uuidv4 } from 'uuid';
 import { NotebookCell } from '@/app/types';
+import { OutputExecutionMessage, OutputSaveMessage, OutputLoadMessage } from '@/app/types';
+
 
 interface NotebookConnectionProps {
   onOutput: (cellId: string, output: string) => void;
-  onNotebookLoaded?: (cells: NotebookCell[]) => void;
-  onNotebookSaved?: () => void;
+  onNotebookLoaded: (cells: NotebookCell[]) => void;
+  onNotebookSaved: (data: any) => void;
   onError?: (error: string) => void;
 }
 
@@ -46,7 +48,7 @@ export function useNotebookConnection({
     onOpen: () => console.log('Connected to Python kernel'),
     onClose: () => console.log('Disconnected from Python kernel'),
     onError: () => onError?.('Failed to connect to Python kernel'),
-    shouldReconnect: (closeEvent) => true,
+    // shouldReconnect: (closeEvent) => true,
     reconnectAttempts: 10,
     reconnectInterval: 3000,
   });
@@ -54,16 +56,22 @@ export function useNotebookConnection({
   useEffect(() => {
     if (lastMessage !== null) {
       const data = JSON.parse(lastMessage.data);
+      let parsedData = null;
       switch (data.type) {
         case 'output':
-          console.log(`Received output: ${data.output}, type: ${typeof data.output}, cellId: ${data.cellId}`);
-          callbackRef.current.onOutput(data.cellId, data.output);
+          parsedData = data as OutputExecutionMessage;
+          console.log(`Received output: ${parsedData.output}, type: ${typeof parsedData.type}, cellId: ${parsedData.cellId}`);
+          callbackRef.current.onOutput(parsedData.cellId, parsedData.output);
           break;
         case 'notebook_loaded':
-          callbackRef.current.onNotebookLoaded?.(data.cells);
+          parsedData = data as OutputLoadMessage;
+          console.log(`Received notebook_loaded: ${parsedData.type}, success: ${parsedData.success}, message: ${parsedData.message}`);
+          callbackRef.current.onNotebookLoaded(parsedData.cells);
           break;
         case 'notebook_saved':
-          callbackRef.current.onNotebookSaved?.();
+          parsedData = data as OutputSaveMessage;
+          console.log(`Received notebook_saved: ${parsedData.type}, success: ${parsedData.success}, message: ${parsedData.message}`);
+          callbackRef.current.onNotebookSaved(parsedData);
           break;
         case 'error':
           callbackRef.current.onError?.(data.message);
@@ -82,7 +90,7 @@ export function useNotebookConnection({
 
   const saveNotebook = useCallback((filename: string, cells: NotebookCell[]) => {
     sendMessage(JSON.stringify({
-      type: 'save',
+      type: 'save_notebook',
       filename,
       cells
     }));
@@ -90,7 +98,7 @@ export function useNotebookConnection({
 
   const loadNotebook = useCallback((filename: string) => {
     sendMessage(JSON.stringify({
-      type: 'load',
+      type: 'load_notebook',
       filename
     }));
   }, [sendMessage]);

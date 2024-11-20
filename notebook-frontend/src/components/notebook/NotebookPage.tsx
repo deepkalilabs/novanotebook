@@ -1,12 +1,18 @@
+<<<<<<< HEAD
+=======
+"use client";
+// components/notebook/NotebookPage.tsx
+>>>>>>> main
 import { useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import { ToastAction } from "@/components/ui/toast"
 import { useNotebookStore } from '@/app/store';
 import { useNotebookConnection } from '@/hooks/useNotebookConnection';
 import { NotebookToolbar } from '@/components/notebook/NotebookToolbar';
 import { NotebookCell } from '@/components/notebook/NotebookCell';
 
 export default function NotebookPage() {
-  const toast = useToast();
+  const { toast } = useToast();
   const { cells, addCell, updateCellCode, updateCellOutput, deleteCell, moveCellUp, moveCellDown, setCells } = useNotebookStore();
 
   const {
@@ -20,19 +26,29 @@ export default function NotebookPage() {
     onOutput: updateCellOutput,
     onNotebookLoaded: (cells) => {
       setCells(cells);
-      toast.toast({
+      toast({
         title: 'Notebook loaded',
         description: 'Successfully loaded notebook'
       });
     },
-    onNotebookSaved: () => {
-      toast.toast({
-        title: 'Notebook saved',
-        description: 'Successfully saved notebook'
-      });
+    onNotebookSaved: (data) => {
+      if (data.success) {
+        console.log(`Toasting: Received notebook_saved: ${data.type}, success: ${data.success}, message: ${data.message}`);
+        // TODO: Toast doesn't work
+        toast({
+          title: 'Notebook saved',
+          description: `Successfully saved notebook. ${data.message}`,
+        });
+      } else {
+        toast({
+          title: 'Notebook save failed',
+          description: `Failed to save notebook. ${data.message}`,
+          variant: 'destructive'
+        });
+      }
     },
     onError: (error) => {
-      toast.toast({
+      toast({
         title: 'Error',
         description: error,
         variant: 'destructive'
@@ -43,7 +59,7 @@ export default function NotebookPage() {
   useEffect(() => {
     // Show connection status changes
     if (!isConnected) {
-      toast.toast({
+      toast({
         title: 'Kernel Status',
         description: connectionStatus,
         variant: 'destructive'
@@ -56,15 +72,15 @@ export default function NotebookPage() {
     if (!cell) return;
 
     updateCellOutput(cellId, '');
-    await executeCode(cellId, cell.code);
+    executeCode(cellId, cell.code);
   };
 
   const handleSave = async (filename: string) => {
-    await saveNotebook(filename, cells);
+    saveNotebook(filename, cells);
   };
 
   const handleLoad = async (filename: string) => {
-    await loadNotebook(filename);
+    loadNotebook(filename);
   };
 
   return (
@@ -74,10 +90,10 @@ export default function NotebookPage() {
       </div>
 
       <NotebookToolbar
-        onAddCell={addCell}
-        onSave={handleSave}
-        onLoad={handleLoad}
-        // onRestartKernel={restartKernel}
+        onHandleAddCell={addCell}
+        onHandleSave={handleSave}
+        onHandleLoad={handleLoad}
+        onHandleRestartKernel={restartKernel}
         isConnected={isConnected}
         allCells={cells}
       />
@@ -101,7 +117,7 @@ export default function NotebookPage() {
         
         {cells.length === 0 && (
           <div className="text-center py-8 text-muted-foreground">
-            No cells yet. Click "Add Cell" to create one.
+            No cells yet. Click Add Cell to create one.
           </div>
         )} 
       </div>

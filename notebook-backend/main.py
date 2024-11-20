@@ -8,10 +8,21 @@ from pydantic import BaseModel
 
 app = FastAPI()
 
-class OutputMessage(BaseModel):
+class OutputExecutionMessage(BaseModel):
     type: str
     cellId: str
     output: str
+
+class OutputSaveMessage(BaseModel):
+    type: str
+    success: bool
+    message: str
+
+class OutputLoadMessage(BaseModel):
+    type: str
+    success: bool
+    message: str
+    cells: list
 
 # Enable CORS for frontend communication
 app.add_middleware(
@@ -50,54 +61,74 @@ async def websocket_endpoint(websocket: WebSocket, session_id: str):
             print(f"Received data: {data}")
             if data['type'] == 'execute':
                 code = data['code']
-                kc.execute(code)
-                output = ""
-                while True:
-                    try:
-                        msg = kc.get_iopub_msg(timeout=1)
-                        msg_type = msg['header']['msg_type']
-                        content = msg['content']
-                        if msg_type == 'stream':
-                            output += content['text']
-                        elif msg_type == 'execute_result':
-                            output += content['data']['text/plain']
-                        elif msg_type == 'error':
-                            output += '\n'.join(content['traceback'])
-                        elif msg_type == 'status' and content['execution_state'] == 'idle':
-                            # Execution finished
-                            break
-                    except Exception:
-                        break
+                output = await execute_code(kc, code)
                 print(f"Sending output: {output}, type: {type(output)}, cellId: {data['cellId']}")
-                msgOutput = OutputMessage(type='output', cellId=data['cellId'], output=output)
-                await websocket.send_json(msgOutput.model_dump(mode='json'))
+                msgOutput = OutputExecutionMessage(type='output', cellId=data['cellId'], output=output)
+                await websocket.send_json(msgOutput.model_dump())
+            
+            elif data['type'] == 'save_notebook':
+                response = await save_notebook(data)
+                print("response", response)
+                response = OutputSaveMessage(type='notebook_saved', success=response['success'], message=response['message'])
+                await websocket.send_json(response.model_dump())
+                
+            elif data['type'] == 'load_notebook':
+                response = await load_notebook(data['filename'])
+                response = OutputLoadMessage(type='notebook_loaded', success=response['status'] == 'success', message=response['message'], cells=response['notebook'])
+                await websocket.send_json(response.model_dump())
+                
     except WebSocketDisconnect:
         pass
     finally:
         # Optionally, you can decide when to shut down the kernel
         pass
+    
+async def execute_code(kernel_client, code: str) -> str:
+    kernel_client.execute(code)
+    output = ""
+    while True:
+        try:
+            msg = kernel_client.get_iopub_msg(timeout=1)
+            msg_type = msg['header']['msg_type']
+            content = msg['content']
+            if msg_type == 'stream':
+                output += content['text']
+            elif msg_type == 'execute_result':
+                output += content['data']['text/plain']
+            elif msg_type == 'error':
+                output += '\n'.join(content['traceback'])
+            elif msg_type == 'status' and content['execution_state'] == 'idle':
+                # Execution finished
+                break
+        except Exception:
+            break
+    return output
 
-# Endpoint to save the notebook
-@app.post("/save")
 async def save_notebook(data: dict):
-    filename = data.get('filename', 'untitled.ipynb')
-    notebook = data.get('notebook')
-    if not notebook:
-        return {"status": "error", "message": "No notebook data provided."}
-    filepath = os.path.join('notebooks', filename)
-    with open(filepath, 'w') as f:
-        json.dump(notebook, f)
-    return {"status": "success"}
+    try:
+        notebook = data.get('cells')
+        filename = data.get('filename')
+        print("notebook", notebook)
+        if not notebook:
+            return {"success": False, "message": "No cells found in the file provided."}
+        
+        filepath = os.path.join('notebooks', filename)
+        with open(filepath, 'w') as f:
+            json.dump(notebook, f)
+        print(f"Saved notebook to {filepath}")
+        return {"success": True, "message": "Notebook saved successfully."}
+    except Exception as e:
+        return {"success": False, "message": str(e)}
 
-# Endpoint to load the notebook
-@app.get("/load")
 async def load_notebook(filename: str):
     filepath = os.path.join('notebooks', filename)
     if not os.path.exists(filepath):
-        return {"status": "error", "message": "Notebook not found."}
+        return {"status": "error", "message": "Notebook not found.", "notebook": []}
     with open(filepath, 'r') as f:
         notebook = json.load(f)
-    return {"status": "success", "notebook": notebook}
+    if not notebook:
+        return {"status": "error", "message": "Notebook is empty.", "notebook": []}
+    return {"status": "success", "notebook": notebook, "message": "Notebook loaded successfully."}
 
 # Endpoint for "one-click deploy" functionality
 @app.post("/deploy")

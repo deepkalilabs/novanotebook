@@ -6,7 +6,7 @@ import dynamic from 'next/dynamic';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Loader2, ChevronUp, ChevronDown, Trash2 } from 'lucide-react';
-import ExecutableEditor from '@/components/ExecutableEditor';
+
 // Dynamic import of Monaco editor to avoid SSR issues
 const MonacoEditor = dynamic(
   () => import('@monaco-editor/react'),
@@ -117,15 +117,9 @@ export function NotebookCell({
               tabCompletion: 'on',
             }}
           />
-          {/* <ExecutableEditor
-            code={code}
-            onCodeChange={onCodeChange}
-            onExecute={onExecute}
-            isExecuting={isExecuting}
-          /> */}
         </div>
         
-        {output && (
+        {output && id && (
           <div className="mt-4">
             <div className="text-sm text-muted-foreground">
               {executionCount > 0 ? `Out [${executionCount}]:` : 'Out [ ]'}
