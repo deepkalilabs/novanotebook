@@ -1,7 +1,6 @@
 'use client'
-
 import { useState } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -10,123 +9,157 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
+  CardFooter,
 } from '@/components/ui/card'
-import { Eye, EyeOff } from 'lucide-react' // Add this import at the top
-import { useRouter } from 'next/navigation'
-import { Suspense } from 'react'
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Icons } from "@/components/ui/icons"
+import { supabase } from '@/lib/supabase'
+import { Label } from '@/components/ui/label'
+import { EyeIcon } from 'lucide-react'
+import { EyeOffIcon } from 'lucide-react'
 
 export default function ResetPasswordPage() {
-  return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <ResetPasswordContent />
-    </Suspense>
-  )
-}
-
-function ResetPasswordContent() {
+  const router = useRouter()
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
-  const [error, setError] = useState('')
+  const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const searchParams = useSearchParams()
-  const token = searchParams.get('token')
-  const router = useRouter()
-  const backendUrl = process.env.NEXT_PUBLIC_API_URL
-  
+
+  const togglePassword = () => {
+    console.log('Toggling password visibility from:', showPassword)
+    setShowPassword(prev => !prev)
+  }
+
+  const toggleConfirmPassword = () => {
+    console.log('Toggling confirm password visibility from:', showConfirmPassword)
+    setShowConfirmPassword(prev => !prev)
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setError('')
+    setError(null)
 
-    const trimmedPassword = password.trim()
-    const trimmedConfirmPassword = confirmPassword.trim()
-
-    if (trimmedPassword !== trimmedConfirmPassword) {
-      setError('Passwords do not match')
+    if (password.length < 8) {
+      setError('Password must be at least 8 characters long')
       return
     }
 
-    if (trimmedPassword.length < 8) {
-      setError('Password must be at least 8 characters long')
+    if (password !== confirmPassword) {
+      setError('Passwords do not match')
       return
     }
 
     setIsLoading(true)
     try {
-      console.log("backendUrl", backendUrl)
-      const response = await fetch(`${backendUrl}/api/accounts/v1/reset-password`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token, password: trimmedPassword }),
+      const { error: updateError } = await supabase.auth.updateUser({
+        password: password
       })
 
-      if (!response.ok) {
-        throw new Error('Failed to reset password')
-      }
-      // Redirect to login page or show success message
-      router.push('/auth/signin')
-    } catch (err) {
-      console.error('Error resetting password:', err);
-      setError('Failed to reset password. Please try again.')
+      if (updateError) throw updateError
+
+      // Password updated successfully
+      router.push('/auth/signin?message=Password updated successfully')
+    } catch (err: any) {
+      console.error('Error updating password:', err)
+      setError(err.message || 'Failed to update password. Please try again.')
     } finally {
       setIsLoading(false)
     }
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center">
-      <Card className="w-full max-w-md mx-4">
-        <CardHeader>
-          <CardTitle>Reset Password</CardTitle>
-          <CardDescription>Enter your new password below</CardDescription>
+    
+    <div className="flex min-h-screen items-center justify-center p-4">
+      <Card className="w-full max-w-md">
+        <CardHeader className="space-y-1">
+          <CardTitle className="text-2xl text-center">Update password</CardTitle>
+          <CardDescription className="text-center">
+            Enter your new password below
+          </CardDescription>
         </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2 relative">
-              <Input
-                type={showPassword ? "text" : "password"}
-                placeholder="New Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                disabled={isLoading}
-                className="pr-8"
-              />
-              <button
-                type="button"
-                className="absolute right-2.5 top-[30%] -translate-y-1/2"
-                onClick={() => setShowPassword(!showPassword)}
-              >
-                {showPassword ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
-              </button>
+        <form onSubmit={handleSubmit}>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="password">New Password</Label>
+              <div className="relative">
+                <Input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => {
+                    setPassword(e.target.value)
+                    setError(null)
+                  }}
+                  placeholder="********"
+                  disabled={isLoading}
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                  onClick={togglePassword}
+                  disabled={isLoading}
+                >
+                  {showPassword ? (
+                    <EyeOffIcon className="h-4 w-4" />
+                  ) : (
+                    <EyeIcon className="h-4 w-4" />
+                  )}
+                </Button>
+              </div>
             </div>
-            <div className="space-y-2 relative">
-              <Input
-                type={showConfirmPassword ? "text" : "password"}
-                placeholder="Confirm Password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                disabled={isLoading}
-                className="pr-8"
-              />
-              <button
-                type="button"
-                className="absolute right-2.5 top-[30%] -translate-y-1/2"
-                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-              >
-                {showConfirmPassword ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
-              </button>
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword">Confirm New Password</Label>
+              <div className="relative">
+                <Input
+                  id="confirmPassword"
+                  type={showConfirmPassword ? "text" : "password"}
+                  value={confirmPassword}
+                  onChange={(e) => {
+                    setConfirmPassword(e.target.value)
+                    setError(null)
+                  }}
+                  placeholder="********"
+                  disabled={isLoading}
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                  onClick={toggleConfirmPassword}
+                  disabled={isLoading}
+                >
+                  {showConfirmPassword ? (
+                    <EyeOffIcon className="h-4 w-4" />
+                  ) : (
+                    <EyeIcon className="h-4 w-4" />
+                  )}
+                </Button>
+              </div>
             </div>
-            {error && <p className="text-sm text-red-500">{error}</p>}
+            {error && (
+              <Alert variant="destructive">
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+          </CardContent>
+          <CardFooter>
             <Button
               type="submit"
               className="w-full"
               disabled={isLoading}
             >
-              {isLoading ? 'Resetting...' : 'Reset Password'}
+              {isLoading && (
+                <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
+              )}
+              {isLoading ? 'Updating password...' : 'Update password'}
             </Button>
-          </form>
-        </CardContent>
+          </CardFooter>
+        </form>
       </Card>
     </div>
   )
