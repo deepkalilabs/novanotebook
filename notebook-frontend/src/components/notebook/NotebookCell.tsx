@@ -40,8 +40,15 @@ export function NotebookCell({
 }: NotebookCellProps) {
   const [isEditorReady, setIsEditorReady] = useState(false);
 
+  const calculateEditorHeight = (value: string) => {
+    const lineCount = value.split("\n").length;
+    const baseHeight = 200;
+    const lineHeight = 20;
+    return Math.max(baseHeight, Math.min(lineCount * lineHeight, 500)); // cap at 600px
+  }
+
   return (
-    <Card className="group">
+    <Card className="group min-h-[25vh] max-h-[75vh] h-auto overflow-auto">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <div className="flex flex-row items-center space-x-2">
           <Button
@@ -91,15 +98,15 @@ export function NotebookCell({
         </div>
       </CardHeader>
       
-      <CardContent>
-        <div className="rounded-md border">
+      <CardContent >
+        <div className="rounded-md border h-full">
           {!isEditorReady && (
             <div className="h-[200px] flex items-center justify-center bg-muted">
               <Loader2 className="h-6 w-6 animate-spin" />
             </div>
           )}
           <MonacoEditor
-            height="200px"
+            height={ calculateEditorHeight(code) }
             language="python"
             value={code}
             onChange={(value) => onCodeChange(value || '')}

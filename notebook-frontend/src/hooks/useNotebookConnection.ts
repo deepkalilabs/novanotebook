@@ -21,15 +21,25 @@ export function useNotebookConnection({
   onNotebookSaved,
   onError
 }: NotebookConnectionProps) {
-  const sessionId = useRef(uuidv4()).current;
-  const socketURL = process.env.NEXT_PUBLIC_AWS_EC2_IP || '0.0.0.0';
-  const port = process.env.NEXT_PUBLIC_AWS_EC2_PORT || '8000';
 
-  const socketUrl = `wss://${socketURL}/ws/${sessionId}`;
+  const setupSocketUrl = useCallback(() => {
+    const sessionId = useRef(uuidv4()).current;
+    const socketBaseURL = process.env.NODE_ENV === 'development' ? '0.0.0.0' : process.env.NEXT_PUBLIC_AWS_EC2_IP;
 
-  if (process.env.NODE_ENV === 'development') {
-    console.log(`Socket URL: ${socketUrl}, sessionId: ${sessionId}, port: ${port}, socketURL: ${socketURL}`);
-  }
+    let socketUrl = '';
+
+    if (process.env.NODE_ENV === 'development') {
+      socketUrl = `ws://0.0.0.0:8000/ws/${sessionId}`;
+      console.log(`Socket URL: ${socketUrl}, sessionId: ${sessionId}, socketURL: ${socketBaseURL}`);
+    } else {
+      socketUrl = `wss://${process.env.NEXT_PUBLIC_AWS_EC2_IP}/ws/${sessionId}`;
+      console.log(`Socket URL: ${socketUrl}, sessionId: ${sessionId}`);
+    }
+
+    return socketUrl;
+  }, []);
+
+  const socketUrl = setupSocketUrl();
 
   const callbackRef = useRef({
     onOutput,
