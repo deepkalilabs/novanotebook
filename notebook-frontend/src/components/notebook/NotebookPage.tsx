@@ -85,14 +85,16 @@ export default function NotebookPage() {
         <h1 className="text-3xl font-bold">Python Notebook</h1>
       </div>
 
-      <NotebookToolbar
-        onHandleAddCell={addCell}
-        onHandleSave={handleSave}
-        onHandleLoad={handleLoad}
-        onHandleRestartKernel={restartKernel}
-        isConnected={isConnected}
-        allCells={cells}
-      />
+      <div className="sticky top-0 z-50 bg-background py-2 border-b">
+        <NotebookToolbar
+          onHandleAddCell={addCell}
+          onHandleSave={handleSave}
+          onHandleLoad={handleLoad}
+          onHandleRestartKernel={restartKernel}
+          isConnected={isConnected}
+          allCells={cells}
+        />
+      </div>
 
       <div className="space-y-6">
         {cells.map((cell) => (

@@ -44,7 +44,7 @@ export function NotebookCell({
     const lineCount = value.split("\n").length;
     const baseHeight = 200;
     const lineHeight = 20;
-    return Math.max(baseHeight, Math.min(lineCount * lineHeight, 500)); // cap at 600px
+    return Math.max(baseHeight, Math.min(lineCount * lineHeight, 500)); // cap at 500px
   }
 
   return (
