@@ -30,32 +30,16 @@ export function useNotebookConnection({
 
     if (process.env.NODE_ENV === 'development') {
       socketUrl = `ws://0.0.0.0:8000/ws/${sessionId}`;
-      console.log(`Socket URL: ${socketUrl}, sessionId: ${sessionId}, socketURL: ${socketBaseURL}`);
+      // console.log(`Socket URL: ${socketUrl}, sessionId: ${sessionId}, socketURL: ${socketBaseURL}`);
     } else {
       socketUrl = `wss://${process.env.NEXT_PUBLIC_AWS_EC2_IP}/ws/${sessionId}`;
-      console.log(`Socket URL: ${socketUrl}, sessionId: ${sessionId}`);
+      // console.log(`Socket URL: ${socketUrl}, sessionId: ${sessionId}`);
     }
 
     return socketUrl;
   }, []);
 
   const socketUrl = setupSocketUrl();
-
-  const callbackRef = useRef({
-    onOutput,
-    onNotebookLoaded,
-    onNotebookSaved,
-    onError
-  });
-
-  useEffect(() => {
-    callbackRef.current = {
-      onOutput,
-      onNotebookLoaded,
-      onNotebookSaved,
-      onError
-    };
-  }, [onOutput, onNotebookLoaded, onNotebookSaved, onError]);
 
   const {
     sendMessage,
@@ -73,50 +57,52 @@ export function useNotebookConnection({
   useEffect(() => {
     if (lastMessage !== null) {
       const data = JSON.parse(lastMessage.data);
+      console.log(`Received message: ${lastMessage.data}`);
       let parsedData = null;
       switch (data.type) {
         case 'output':
           parsedData = data as OutputExecutionMessage;
           console.log(`Received output: ${parsedData.output}, type: ${typeof parsedData.type}, cellId: ${parsedData.cellId}`);
-          callbackRef.current.onOutput(parsedData.cellId, parsedData.output);
+          onOutput(parsedData.cellId, parsedData.output);
           break;
         case 'notebook_loaded':
           parsedData = data as OutputLoadMessage;
           console.log(`Received notebook_loaded: ${parsedData.type}, success: ${parsedData.success}, message: ${parsedData.message}`);
-          callbackRef.current.onNotebookLoaded(parsedData.cells);
+          onNotebookLoaded(parsedData.cells);
           break;
         case 'notebook_saved':
           parsedData = data as OutputSaveMessage;
           console.log(`Received notebook_saved: ${parsedData.type}, success: ${parsedData.success}, message: ${parsedData.message}`);
-          callbackRef.current.onNotebookSaved(parsedData);
+          onNotebookSaved(parsedData);
           break;
         case 'error':
-          callbackRef.current.onError?.(data.message);
+          onError?.(data.message);
           break;
       }
     }
   }, [lastMessage]);
 
-  const executeCode = useCallback((cellId: string, code: string) => {
+  const executeCode = (cellId: string, code: string) => {
     sendMessage(JSON.stringify({
       type: 'execute',
       cellId,
       code
     }));
-  }, [sendMessage]);
+    onOutput(cellId, 'Loading....');
+  };
 
-  const saveNotebook = useCallback((filename: string, cells: NotebookCell[]) => {
+  const saveNotebook = (cells: NotebookCell[], filename: string) => {
     sendMessage(JSON.stringify({
       type: 'save_notebook',
-      filename,
-      cells
+      cells: cells,
+      filename: filename
     }));
-  }, [sendMessage]);
+  };
 
   const loadNotebook = useCallback((filename: string) => {
     sendMessage(JSON.stringify({
       type: 'load_notebook',
-      filename
+      filename: filename
     }));
   }, [sendMessage]);
 

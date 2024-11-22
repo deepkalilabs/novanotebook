@@ -13,7 +13,7 @@ interface LoadNotebookButtonProps {
 
 export function LoadNotebookButton({ onHandleLoad }: LoadNotebookButtonProps) {
   const [isLoading, setIsLoading] = useState(false);
-  const [filename, setFilename] = useState('');
+  const [filename, setFilename] = useState('testground.ipynb');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const handleLoad = async () => {

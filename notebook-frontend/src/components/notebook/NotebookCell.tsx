@@ -6,7 +6,7 @@ import dynamic from 'next/dynamic';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Loader2, ChevronUp, ChevronDown, Trash2 } from 'lucide-react';
-
+import Ansi from "ansi-to-react";
 // Dynamic import of Monaco editor to avoid SSR issues
 const MonacoEditor = dynamic(
   () => import('@monaco-editor/react'),
@@ -49,8 +49,8 @@ export function NotebookCell({
 
   return (
     <Card className="group min-h-[25vh] max-h-[75vh] h-auto overflow-auto">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <div className="flex flex-row items-center space-x-2">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 sticky top-0 z-50 bg-background py-2 border-b">
+        <div className="flex flex-row items-center space-x-2 ">
           <Button
             size="sm"
             onClick={onExecute}
@@ -132,7 +132,7 @@ export function NotebookCell({
               {executionCount > 0 ? `Out [${executionCount}]:` : 'Out [ ]'}
             </div>
             <pre className="mt-2 rounded-md bg-muted p-4 font-mono text-sm whitespace-pre-wrap overflow-x-auto">
-              {output}
+              <Ansi>{output}</Ansi>
             </pre>
           </div>
         )}

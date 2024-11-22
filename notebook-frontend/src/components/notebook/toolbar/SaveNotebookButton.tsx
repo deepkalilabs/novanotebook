@@ -13,7 +13,7 @@ interface SaveNotebookButtonProps {
 
 export function SaveNotebookButton({ onHandleSave }: SaveNotebookButtonProps) {
   const [isSaving, setIsSaving] = useState(false);
-  const [filename, setFilename] = useState('');
+  const [filename, setFilename] = useState('testground.ipynb');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const handleSave = async () => {

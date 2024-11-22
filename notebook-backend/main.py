@@ -6,6 +6,7 @@ from jupyter_client import KernelManager
 import os
 from pydantic import BaseModel
 import ssl
+from pprint import pprint
 app = FastAPI()
 
 class OutputExecutionMessage(BaseModel):
@@ -58,11 +59,12 @@ async def websocket_endpoint(websocket: WebSocket, session_id: str):
         while True:
             data = await websocket.receive_json()
             
-            print(f"Received data: {data}")
+            print(f"Received data: {data}\n\n")
             if data['type'] == 'execute':
                 code = data['code']
                 output = await execute_code(kc, code)
-                print(f"Sending output: {output}, type: {type(output)}, cellId: {data['cellId']}")
+
+                print(f"Sending output: {output}, type: {type(output)}, cellId: {data['cellId']}\n\n")
                 msgOutput = OutputExecutionMessage(type='output', cellId=data['cellId'], output=output)
                 await websocket.send_json(msgOutput.model_dump())
             
@@ -77,6 +79,8 @@ async def websocket_endpoint(websocket: WebSocket, session_id: str):
                 response = OutputLoadMessage(type='notebook_loaded', success=response['status'] == 'success', message=response['message'], cells=response['notebook'])
                 await websocket.send_json(response.model_dump())
                 
+            msgOutput = ''
+            
     except WebSocketDisconnect:
         pass
     finally:
@@ -87,21 +91,32 @@ async def execute_code(kernel_client, code: str) -> str:
     kernel_client.execute(code)
     output = ""
     while True:
+        print("waiting for message")
         try:
             msg = kernel_client.get_iopub_msg(timeout=1)
             msg_type = msg['header']['msg_type']
             content = msg['content']
+            if msg_type == 'status' and content['execution_state'] == 'busy':
+                continue
             if msg_type == 'stream':
+                print("stream", content)
                 output += content['text']
             elif msg_type == 'execute_result':
+                print("execute_result", content)
                 output += content['data']['text/plain']
             elif msg_type == 'error':
+                print("error", content)
                 output += '\n'.join(content['traceback'])
             elif msg_type == 'status' and content['execution_state'] == 'idle':
                 # Execution finished
+                if output:
+                    break
+            print(f"content: {content} \n\n")
+        except Exception as e:
+            if str(e).strip():
+                print(f"error: {e} \n\n")
                 break
-        except Exception:
-            break
+            continue
     return output
 
 async def save_notebook(data: dict):

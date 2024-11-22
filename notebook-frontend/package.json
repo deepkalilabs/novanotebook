@@ -19,6 +19,7 @@
     "@supabase/supabase-js": "^2.46.1",
     "@typescript-eslint/type-utils": "^8.14.0",
     "@typescript-eslint/utils": "^8.14.0",
+    "ansi-to-react": "^6.1.6",
     "autoprefixer": "^10.4.20",
     "axios": "^1.7.7",
     "class-variance-authority": "^0.7.0",

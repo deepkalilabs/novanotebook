@@ -1,5 +1,5 @@
 "use client";
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 //import { ToastAction } from "@/components/ui/toast"
 import { useNotebookStore } from '@/app/store';
@@ -72,7 +72,7 @@ export default function NotebookPage() {
   };
 
   const handleSave = async (filename: string) => {
-    saveNotebook(filename, cells);
+    saveNotebook(cells, filename);
   };
 
   const handleLoad = async (filename: string) => {
