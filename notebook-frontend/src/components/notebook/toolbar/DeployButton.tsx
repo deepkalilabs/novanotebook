@@ -13,15 +13,16 @@ interface DeployButtonProps {
 export function DeployButton({ 
   onDeploy, 
   isConnected,
-  disabled = false 
+  disabled
 }: DeployButtonProps) {
   const [isDeploying, setIsDeploying] = useState(false);
 
   const handleDeploy = async () => {
-    console.log('Deploying...');
-    setIsDeploying(true);
     try {
-      await onDeploy?.();
+      if (onDeploy) {
+        onDeploy?.()
+        setIsDeploying(true)
+      }
     } finally {
       setIsDeploying(false);
     }

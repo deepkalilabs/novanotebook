@@ -6,16 +6,21 @@ import { useNotebookStore } from '@/app/store';
 import { useNotebookConnection } from '@/hooks/useNotebookConnection';
 import { NotebookToolbar } from '@/components/notebook/NotebookToolbar';
 import { NotebookCell } from '@/components/notebook/NotebookCell';
+import { OutputDeployMessage } from '@/app/types';
+import DeploymentDialog from './NotebookDeploy';
 
 export default function NotebookPage() {
   const { toast } = useToast();
   const { cells, addCell, updateCellCode, updateCellOutput, deleteCell, moveCellUp, moveCellDown, setCells } = useNotebookStore();
+  const [ isDeploying, setIsDeploying ] = useState(false);
+  const [ deploymentData, setDeploymentData] = useState<OutputDeployMessage>({} as OutputDeployMessage);
 
   const {
     executeCode,
     saveNotebook,
     loadNotebook,
     restartKernel,
+    deployCode,
     isConnected,
     connectionStatus
   } = useNotebookConnection({
@@ -42,6 +47,11 @@ export default function NotebookPage() {
           variant: 'destructive'
         });
       }
+    },
+    onNotebookDeployed: (data) => {
+      console.log(`Received notebook_deployed: ${data.type}, success: ${data.success}, message: ${data.message}`);
+      setDeploymentData(data);
+      setIsDeploying(true);
     },
     onError: (error) => {
       toast({
@@ -79,11 +89,24 @@ export default function NotebookPage() {
     loadNotebook(filename);
   };
 
+  const handleDeploy = async () => {
+    deployCode(cells)
+  }
+
   return (
     <div className="container mx-auto py-8">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-3xl font-bold">Python Notebook</h1>
       </div>
+
+      { isDeploying && (
+          <DeploymentDialog
+            isOpen={isDeploying}
+            onOpenChange={setIsDeploying}
+            data={deploymentData}
+          />
+        )
+      }
 
       <div className="sticky top-0 z-50 bg-background py-2 border-b">
         <NotebookToolbar
@@ -93,6 +116,7 @@ export default function NotebookPage() {
           onHandleRestartKernel={restartKernel}
           isConnected={isConnected}
           allCells={cells}
+          onHandleDeploy={handleDeploy}
         />
       </div>
 
