@@ -46,3 +46,9 @@ export interface OutputLoadMessage {
     message: string;
     cells: NotebookCell[];
 }
+
+export interface OutputDeployMessage {
+    type: string;
+    success: boolean;
+    message: string;
+}

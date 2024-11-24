@@ -45,7 +45,6 @@ export default function SignIn() {
       });
 
       if (signInError) throw signInError;
-      debugger;
 
       if (data?.session) {
         // Successful login

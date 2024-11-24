@@ -7,6 +7,12 @@ import os
 from pydantic import BaseModel
 import ssl
 from pprint import pprint
+from lambda_generator.generate_lambda_fn import LambdaGenerator
+import sh
+from jupyter_client.kernelspec import KernelSpecManager
+import sys
+from io import StringIO
+
 app = FastAPI()
 
 class OutputExecutionMessage(BaseModel):
@@ -24,6 +30,11 @@ class OutputLoadMessage(BaseModel):
     success: bool
     message: str
     cells: list
+    
+class OutputGenerateLambdaMessage(BaseModel):
+    type: str
+    success: bool
+    message: str
 
 # Enable CORS for frontend communication
 app.add_middleware(
@@ -47,7 +58,32 @@ async def websocket_endpoint(websocket: WebSocket, session_id: str):
 
     if session_id not in sessions:
         # Start a new kernel for the session
-        km = KernelManager()
+        user_id = 1
+        env_name = f"venv_kernel_{user_id}"
+        curr_envs = {os.path.basename(env): env for env in json.loads(sh.conda("env", "list", "--json"))['envs']}
+        relevant_env_path = curr_envs[env_name]
+        relevant_env_path_python = os.path.join(relevant_env_path, "bin", "python3")
+        
+        if env_name not in curr_envs:
+            sh.conda(
+                "create", "-n", env_name, "python=3.9", "ipykernel",
+                _out=sys.stdout, _err=sys.stderr, force=True
+            )
+        try:
+            sh.Command(relevant_env_path_python)(
+                "-m", "ipykernel", "install", 
+                "--user", "--name", env_name, "--display-name", env_name,
+                _out=sys.stdout, _err=sys.stderr)
+            
+        except sh.ErrorReturnCode as e:
+            print(f"Error installing kernel: {e}")
+        
+        ksm = KernelSpecManager()
+        
+        if env_name not in ksm.find_kernel_specs():
+            raise ValueError(f"Kernel '{env_name}' not found.")
+        
+        km = KernelManager(kernel_name=env_name)
         km.start_kernel()
         kc = km.client()
         kc.start_channels()
@@ -62,7 +98,7 @@ async def websocket_endpoint(websocket: WebSocket, session_id: str):
             print(f"Received data: {data}\n\n")
             if data['type'] == 'execute':
                 code = data['code']
-                output = await execute_code(kc, code)
+                output = await execute_code(kernel_client=kc, relevant_env_path=relevant_env_path, code=code)
 
                 print(f"Sending output: {output}, type: {type(output)}, cellId: {data['cellId']}\n\n")
                 msgOutput = OutputExecutionMessage(type='output', cellId=data['cellId'], output=output)
@@ -79,6 +115,41 @@ async def websocket_endpoint(websocket: WebSocket, session_id: str):
                 response = OutputLoadMessage(type='notebook_loaded', success=response['status'] == 'success', message=response['message'], cells=response['notebook'])
                 await websocket.send_json(response.model_dump())
                 
+            elif data['type'] == 'deploy_lambda':
+                # TODO: Better dependency management here.
+                # TODO: Get status/msg directly from function.
+                dependencies = await execute_code(kernel_client=kc, relevant_env_path=relevant_env_path, code='!pip freeze')
+                lambda_handler = LambdaGenerator(data['allCode'], 1, data['notebookName'], dependencies)
+                status = False
+
+                msg = "Processing the notebook"
+                response = OutputGenerateLambdaMessage(type='lambda_generated', success=status, message=msg)
+                await websocket.send_json(response.model_dump())
+                lambda_handler.save_lambda_code()
+
+                msg = "Preparing your code for prod"
+                lambda_handler.prepare_container()
+                response = OutputGenerateLambdaMessage(type='lambda_generated', success=status, message=msg)
+                await websocket.send_json(response.model_dump())
+                
+                msg = "Shipping your code to the cloud"
+                lambda_handler.build_and_push_container()
+                response = OutputGenerateLambdaMessage(type='lambda_generated', success=status, message=msg)
+                await websocket.send_json(response.model_dump())
+                
+                # msg = "Setting up your code to handle requests"
+                response = lambda_handler.create_lambda_fn()
+                # response = OutputGenerateLambdaMessage(type='lambda_generated', success=status, message=msg)
+                # await websocket.send_json(response.model_dump())
+                
+                msg = "Creating an API for you"
+                response = OutputGenerateLambdaMessage(type='lambda_generated', success=status, message=msg)
+                await websocket.send_json(response.model_dump())
+                
+                status, message = lambda_handler.create_api_endpoint()
+                response = OutputGenerateLambdaMessage(type='lambda_generated', success=status, message=message)
+                await websocket.send_json(response.model_dump())
+                
             msgOutput = ''
             
     except WebSocketDisconnect:
@@ -87,9 +158,27 @@ async def websocket_endpoint(websocket: WebSocket, session_id: str):
         # Optionally, you can decide when to shut down the kernel
         pass
     
-async def execute_code(kernel_client, code: str) -> str:
+async def execute_code(kernel_client, relevant_env_path: str, code: str) -> str:
+    try:
+        if code.strip().startswith('!'):
+            magic_command = code.split(" ")[0][1:]
+            base_magic_command = code.split(" ")[1:]
+            
+            output_buffer = StringIO()
+            error_buffer = StringIO()
+            
+            result = sh.Command(os.path.join(relevant_env_path, "bin", magic_command))(
+                *base_magic_command,
+                _out=output_buffer, _err=error_buffer
+            )
+            return output_buffer.getvalue()
+        
+    except Exception as e:
+        return "Error in the magic command: " + str(e)
+        
     kernel_client.execute(code)
     output = ""
+    count = 0
     while True:
         print("waiting for message")
         try:
@@ -97,7 +186,10 @@ async def execute_code(kernel_client, code: str) -> str:
             msg_type = msg['header']['msg_type']
             content = msg['content']
             if msg_type == 'status' and content['execution_state'] == 'busy':
-                continue
+                print("execution busy")
+                count += 1
+                if count > 5:
+                    continue
             if msg_type == 'stream':
                 print("stream", content)
                 output += content['text']
@@ -109,13 +201,15 @@ async def execute_code(kernel_client, code: str) -> str:
                 output += '\n'.join(content['traceback'])
             elif msg_type == 'status' and content['execution_state'] == 'idle':
                 # Execution finished
-                if output:
-                    break
+                output += '# Execution finished\n'
+                break
             print(f"content: {content} \n\n")
         except Exception as e:
             if str(e).strip():
                 print(f"error: {e} \n\n")
-                break
+                count += 1
+                if count > 10:
+                    break
             continue
     return output
 
@@ -161,7 +255,13 @@ if __name__ == "__main__":
         "main:app", 
         host="0.0.0.0", 
         port=8000,
-        reload=True
+        reload=True,
+        reload_excludes=[
+            "lambda_dumps/**",
+            "**/lambda_dumps/**",
+            "**/lambda_function.py",              # Exclude any lambda_function.py
+            "**/requirements.txt"                 # Exclude any requirements.txt
+        ]
     )
     
 

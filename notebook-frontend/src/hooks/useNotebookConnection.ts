@@ -1,29 +1,30 @@
 // hooks/useNotebookConnection.ts
 'use client';
 
-import { useCallback, useRef, useEffect } from 'react';
+import { useCallback, useEffect } from 'react';
 import useWebSocket, { ReadyState } from 'react-use-websocket';
 import { v4 as uuidv4 } from 'uuid';
-import { NotebookCell } from '@/app/types';
+import { NotebookCell, OutputDeployMessage } from '@/app/types';
 import { OutputExecutionMessage, OutputSaveMessage, OutputLoadMessage } from '@/app/types';
-
 
 interface NotebookConnectionProps {
   onOutput: (cellId: string, output: string) => void;
   onNotebookLoaded: (cells: NotebookCell[]) => void;
   onNotebookSaved: (data: OutputSaveMessage) => void;
   onError?: (error: string) => void;
+  onNotebookDeployed?: (data: OutputDeployMessage) => void;
 }
 
 export function useNotebookConnection({
   onOutput,
   onNotebookLoaded,
   onNotebookSaved,
+  onNotebookDeployed,
   onError
 }: NotebookConnectionProps) {
 
   const setupSocketUrl = useCallback(() => {
-    const sessionId = useRef(uuidv4()).current;
+    const sessionId = uuidv4();
     const socketBaseURL = process.env.NODE_ENV === 'development' ? '0.0.0.0' : process.env.NEXT_PUBLIC_AWS_EC2_IP;
 
     let socketUrl = '';
@@ -32,7 +33,7 @@ export function useNotebookConnection({
       socketUrl = `ws://0.0.0.0:8000/ws/${sessionId}`;
       // console.log(`Socket URL: ${socketUrl}, sessionId: ${sessionId}, socketURL: ${socketBaseURL}`);
     } else {
-      socketUrl = `wss://${process.env.NEXT_PUBLIC_AWS_EC2_IP}/ws/${sessionId}`;
+      socketUrl = `wss://${socketBaseURL}/ws/${sessionId}`;
       // console.log(`Socket URL: ${socketUrl}, sessionId: ${sessionId}`);
     }
 
@@ -57,7 +58,6 @@ export function useNotebookConnection({
   useEffect(() => {
     if (lastMessage !== null) {
       const data = JSON.parse(lastMessage.data);
-      console.log(`Received message: ${lastMessage.data}`);
       let parsedData = null;
       switch (data.type) {
         case 'output':
@@ -74,6 +74,11 @@ export function useNotebookConnection({
           parsedData = data as OutputSaveMessage;
           console.log(`Received notebook_saved: ${parsedData.type}, success: ${parsedData.success}, message: ${parsedData.message}`);
           onNotebookSaved(parsedData);
+          break;
+        case 'lambda_generated':
+          parsedData = data as OutputDeployMessage;
+          console.log(`Received lambda_generated: ${parsedData.type}, success: ${parsedData.success}, message: ${parsedData.message}`);
+          onNotebookDeployed?.(parsedData);
           break;
         case 'error':
           onError?.(data.message);
@@ -106,6 +111,7 @@ export function useNotebookConnection({
     }));
   }, [sendMessage]);
 
+
   const restartKernel = useCallback(() => {
     sendMessage(JSON.stringify({
       type: 'restart'
@@ -113,11 +119,21 @@ export function useNotebookConnection({
     return Promise.resolve(); // Returns a promise to match the interface expected by the toolbar
   }, [sendMessage]);
 
+  const deployCode = useCallback((cells: NotebookCell[]) => {
+    console.log("cells", cells)
+    sendMessage(JSON.stringify({
+      type: 'deploy_lambda',
+      allCode: cells.map((cell) => cell.code).join('\n'),
+      notebookName: "testground.ipynb"
+    }));
+  }, [sendMessage]);
+
   return {
     executeCode,
     saveNotebook,
     loadNotebook,
     restartKernel,
+    deployCode,
     isConnected: readyState === ReadyState.OPEN,
     connectionStatus: {
       [ReadyState.CONNECTING]: 'Connecting',
