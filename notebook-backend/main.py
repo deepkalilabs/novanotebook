@@ -12,29 +12,9 @@ import sh
 from jupyter_client.kernelspec import KernelSpecManager
 import sys
 from io import StringIO
-
+from helpers.supabase.job_status import get_all_jobs_for_user, get_job_by_request_id
+from helpers.types import OutputExecutionMessage, OutputSaveMessage, OutputLoadMessage, OutputGenerateLambdaMessage, SupabaseJobDetails, SupabaseJobList
 app = FastAPI()
-
-class OutputExecutionMessage(BaseModel):
-    type: str
-    cellId: str
-    output: str
-
-class OutputSaveMessage(BaseModel):
-    type: str
-    success: bool
-    message: str
-
-class OutputLoadMessage(BaseModel):
-    type: str
-    success: bool
-    message: str
-    cells: list
-    
-class OutputGenerateLambdaMessage(BaseModel):
-    type: str
-    success: bool
-    message: str
 
 # Enable CORS for frontend communication
 app.add_middleware(
@@ -44,7 +24,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
 # Dictionary to manage kernels per session
 sessions = {}
 
@@ -94,8 +73,6 @@ async def websocket_endpoint(websocket: WebSocket, session_id: str):
     try:
         while True:
             data = await websocket.receive_json()
-            
-            print(f"Received data: {data}\n\n")
             if data['type'] == 'execute':
                 code = data['code']
                 output = await execute_code(kernel_client=kc, relevant_env_path=relevant_env_path, code=code)
@@ -118,6 +95,7 @@ async def websocket_endpoint(websocket: WebSocket, session_id: str):
             elif data['type'] == 'deploy_lambda':
                 # TODO: Better dependency management here.
                 # TODO: Get status/msg directly from function.
+                # TODO: Make a base lambda layer for basic dependencies.
                 dependencies = await execute_code(kernel_client=kc, relevant_env_path=relevant_env_path, code='!pip freeze')
                 lambda_handler = LambdaGenerator(data['allCode'], 1, data['notebookName'], dependencies)
                 status = False
@@ -217,7 +195,7 @@ async def save_notebook(data: dict):
     try:
         notebook = data.get('cells')
         filename = data.get('filename')
-        print("notebook", notebook)
+
         if not notebook:
             return {"success": False, "message": "No cells found in the file provided."}
         
@@ -239,12 +217,14 @@ async def load_notebook(filename: str):
         return {"status": "error", "message": "Notebook is empty.", "notebook": []}
     return {"status": "success", "notebook": notebook, "message": "Notebook loaded successfully."}
 
-# Endpoint for "one-click deploy" functionality
-@app.post("/deploy")
-async def deploy_app(data: dict):
-    # Implement your deployment logic here
-    # For example, you can package the notebook and deploy it to a server or cloud service
-    return {"status": "success", "message": "Application deployed successfully."}
+@app.get("/status/jobs/{user_id}")
+async def status_endpoint(user_id: int):
+    # TODO: Check if user has access to this data.
+    return get_all_jobs_for_user(user_id)
+
+@app.get("/status/jobs/{user_id}/{request_id}")
+async def status_endpoint(user_id: int, request_id: str):
+    return get_job_by_request_id(request_id, user_id)
 
 if __name__ == "__main__":
     if not os.path.exists('notebooks'):
@@ -261,7 +241,9 @@ if __name__ == "__main__":
             "**/lambda_dumps/**",
             "**/lambda_function.py",              # Exclude any lambda_function.py
             "**/requirements.txt"                 # Exclude any requirements.txt
-        ]
+        ],
+        log_level="info",
+        access_log=True
     )
-    
+
 
