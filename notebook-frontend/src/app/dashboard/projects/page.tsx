@@ -10,40 +10,6 @@ import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 
-const jupyterNotebooksData = {
-    "notebooks": [
-        {
-            "id": 1,
-            "user_id": "1234567890",
-            "notebook_id": "1234567890",
-            "name": "My First Notebook",
-            "description": "A notebook for testing",
-            "s3_path": "s3://my-bucket/my-notebook.ipynb",
-            "created_at": "2021-01-01",
-            "updated_at": "2021-01-01"
-        },
-        {
-            "id": 2,
-            "user_id": "1234567890",
-            "notebook_id": "1234567890",
-            "name": "My First Notebook",
-            "description": "A notebook for testing",
-            "s3_path": "s3://my-bucket/my-notebook.ipynb",
-            "created_at": "2021-01-01",
-            "updated_at": "2021-01-01"
-        },
-        {
-            "id": 3,
-            "user_id": "1234567890",
-            "notebook_id": "1234567890",
-            "name": "My First Notebook",
-            "description": "A notebook for testing",
-            "s3_path": "s3://my-bucket/my-notebook.ipynb",
-            "created_at": "2021-01-01",
-            "updated_at": "2021-01-01"
-        }
-    ]
-}
 
 const templateData = {
     "templates": [
@@ -67,51 +33,98 @@ const templateData = {
         }
     ]
 }
+
+interface Notebook {
+    id: number;
+    user_id: string;
+    session_id: string;
+    name: string;
+    description: string;
+    s3_url: string;
+    updated_at: string;
+    created_at: string;
+}
+
 export default function ProjectsPage() {
-    const [notebooks, setNotebooks] = useState(jupyterNotebooksData.notebooks);
+    const [notebooks, setNotebooks] = useState<Notebook[]>([]);
     const [search, setSearch] = useState("");
     const [dialogOpen, setDialogOpen] = useState(false);
     const [newNotebookName, setNewNotebookName] = useState("");
-    const filterNotebooks = notebooks.filter((notebook) => notebook.name.toLowerCase().includes(search.toLowerCase()));
+    const filterNotebooks = notebooks.filter((notebook: { name: string }) => notebook.name.toLowerCase().includes(search.toLowerCase()));
 
-    const createNotebook = async () => {
-        setDialogOpen(true);
-        if(!newNotebookName) return;
-        // TODO: Create the notebook in the database
-        const newNotebook = {
-            user_id: (async () => (await supabase.auth.getUser()).data.user?.id)(),
-            name: newNotebookName,
+    const createNotebook = async (e: React.MouseEvent<HTMLButtonElement>) => {
+        e.preventDefault();
+        
+        // Get the authenticated user
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        
+        if (userError || !user) {
+            alert('You must be logged in to create a notebook');
+            return;
         }
 
-        //Supabase create notebook
-        const { data, error } = await supabase.from('notebooks').insert(newNotebook).select();
-        debugger;
+        const newNotebook = {
+            user_id: user.id,
+            name: newNotebookName,
+            description: "New notebook", // Adding a default description
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+        }
+
+        // Supabase create notebook
+        const { data, error } = await supabase
+            .from('notebooks')
+            .insert(newNotebook)
+            .select()
+            .single();
+
         if (error) {
             console.error(error);
+            alert('Failed to create notebook: ' + error.message);
             return;
-        } else {
-            setNotebooks([...notebooks, data[0]]);
         }
+
+        setNotebooks(prevNotebooks => [...prevNotebooks, data]);
         setNewNotebookName("");
         alert('Notebook created successfully');
         setDialogOpen(false);
-        //Go to the notebook page
-        
-
     }
 
-    const deleteNotebook = (notebookId: number) => {
-        setNotebooks(notebooks.filter((notebook) => notebook.id !== notebookId));
+    const getAllNotebooks = async () => {
+        const { data, error } = await supabase.from('notebooks').select();
+        if (error) {
+            alert('Failed to fetch notebooks: ' + error.message);
+            return;
+        }
+        setNotebooks(data || [] as Notebook[]); // Type assertion with proper interface
+    }
+
+    const deleteNotebook = async (notebookId: number) => {
+        const { error } = await supabase
+            .from('notebooks')
+            .delete()
+            .eq('id', notebookId);
+            
+        if (error) {
+            alert('Failed to delete notebook: ' + error.message);
+            return;
+        }
+        
+        setNotebooks(notebooks.filter((notebook: { id: number }) => notebook.id !== notebookId));
     }
 
     const openNotebook = (notebookId: number) => {
-        setNotebooks(notebooks.filter((notebook) => notebook.id === notebookId));
+        setNotebooks(notebooks.filter((notebook: { id: number }) => notebook.id !== notebookId));
         // TODO: Open the notebook in a new tab
     }
 
     useEffect(() => {
         console.log(newNotebookName);
     }, [newNotebookName]);
+
+    useEffect(() => {
+        getAllNotebooks();
+    }, []);
 
     return (
         <div className="flex flex-col h-screen bg-background">
