@@ -48,7 +48,7 @@ export default function SignIn() {
 
       if (data?.session) {
         // Successful login
-        router.push('/main'); // or wherever you want to redirect after login
+        router.push('/dashboard/projects'); // or wherever you want to redirect after login
         router.refresh(); // Refresh the page to update the session
       }
     } catch (error) {

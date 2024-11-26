@@ -21,7 +21,7 @@ export default function AuthCallback() {
           // You can store any user data in your application state here if needed
           
           // Redirect to your desired page after successful authentication
-          router.push('/main'); // or dashboard, home, etc.
+          router.push('/dashboard/projects'); // or dashboard, home, etc.
         } else {
           // No session found, redirect to sign in
           router.push('/auth/signin');
