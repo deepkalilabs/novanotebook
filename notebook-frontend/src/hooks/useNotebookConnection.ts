@@ -1,7 +1,7 @@
 // hooks/useNotebookConnection.ts
 'use client';
 
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import useWebSocket, { ReadyState } from 'react-use-websocket';
 import { v4 as uuidv4 } from 'uuid';
 import { NotebookCell, OutputDeployMessage } from '@/app/types';
@@ -22,9 +22,9 @@ export function useNotebookConnection({
   onNotebookDeployed,
   onError
 }: NotebookConnectionProps) {
-
+  const sessionId = useRef(uuidv4()).current;
   const setupSocketUrl = useCallback(() => {
-    const sessionId = uuidv4();
+    
     const socketBaseURL = process.env.NODE_ENV === 'development' ? '0.0.0.0' : process.env.NEXT_PUBLIC_AWS_EC2_IP;
 
     let socketUrl = '';
