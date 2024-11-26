@@ -1,9 +1,14 @@
 FROM --platform=linux/amd64 public.ecr.aws/lambda/python:3.9
 
+ENV SUPABASE_URL="https://nwrsgecoiwijwilscwfz.supabase.co"
+ENV SUPABASE_SERVICE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im53cnNnZWNvaXdpandpbHNjd2Z6Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTczMjA1NDA2MSwiZXhwIjoyMDQ3NjMwMDYxfQ.AKYHAQMpm8sAkX9t7P5V7ZSVI8eevhbOc5IhdiFrlH8"
+
 WORKDIR ${LAMBDA_TASK_ROOT}
 
 COPY requirements.txt .
 
+RUN pip install --no-cache-dir supabase
+RUN pip install --no-cache-dir python-dotenv
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY lambda_function.py .

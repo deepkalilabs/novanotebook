@@ -5,12 +5,13 @@ description = "Backend for new jupyter notebook"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
-    "boto3>=1.35.68",
-    "fastapi>=0.115.5",
-    "ipykernel>=6.29.5",
-    "jupyter-client>=8.6.3",
-    "sh>=2.1.0",
-    "uvicorn>=0.32.1",
-    "websockets>=14.1",
+    "boto3",
+    "fastapi",
+    "ipykernel",
+    "jupyter-client",
+    "sh",
+    "uvicorn",
+    "websockets",
+    "supabase",
+    "python-dotenv>=1.0.1",
 ]
-
