@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
-import { useRouter } from 'next/navigation';
+import { useRouter, redirect } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 
 
@@ -51,6 +51,17 @@ export default function ProjectsPage() {
     const [dialogOpen, setDialogOpen] = useState(false);
     const [newNotebookName, setNewNotebookName] = useState("");
     const filterNotebooks = notebooks.filter((notebook: { name: string }) => notebook.name.toLowerCase().includes(search.toLowerCase()));
+    const router = useRouter();
+
+    useEffect(() => {
+        const checkAuth = async () => {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) {
+                redirect('/auth/signin');
+            }
+        };
+        checkAuth();
+    }, []);
 
     const createNotebook = async (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
@@ -114,7 +125,7 @@ export default function ProjectsPage() {
     }
 
     const openNotebook = (notebookId: number) => {
-        setNotebooks(notebooks.filter((notebook: { id: number }) => notebook.id !== notebookId));
+        router.push(`/dashboard/notebook/${notebookId}`);
         // TODO: Open the notebook in a new tab
     }
 
