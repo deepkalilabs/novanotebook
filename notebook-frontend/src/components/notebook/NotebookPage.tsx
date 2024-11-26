@@ -9,7 +9,7 @@ import { NotebookCell } from '@/components/notebook/NotebookCell';
 import { OutputDeployMessage } from '@/app/types';
 import DeploymentDialog from './NotebookDeploy';
 
-export default function NotebookPage() {
+export default function NotebookPage({ notebookId }: { notebookId: string }) {
   const { toast } = useToast();
   const { cells, addCell, updateCellCode, updateCellOutput, deleteCell, moveCellUp, moveCellDown, setCells } = useNotebookStore();
   const [ isDeploying, setIsDeploying ] = useState(false);
@@ -92,6 +92,8 @@ export default function NotebookPage() {
   const handleDeploy = async () => {
     deployCode(cells)
   }
+
+  console.log(notebookId);
 
   return (
     <div className="container mx-auto py-8">
