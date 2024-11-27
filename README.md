@@ -1,4 +1,4 @@
-# NovaNotebook 🏜️
+# NovaNotebook 🌟
 
 Jupyter notebooks deserve more love. We want to help teams ship technical AI-workflows (see our recipes section for examples) from a notebook to production API within 10 minutes without relying on engineering or infra teams.
 
@@ -6,7 +6,7 @@ Jupyter notebooks deserve more love. We want to help teams ship technical AI-wor
 ![License](https://img.shields.io/badge/license-Apache-blue)
 ![Python](https://img.shields.io/badge/python-3.8%2B-blue)
 
-<img src="/api/placeholder/800/400" alt="Dune Demo" />
+<img src="/api/placeholder/800/400" alt="NovaNotebook Demo" />
 
 ## 🌟 Features
 
