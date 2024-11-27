@@ -27,12 +27,12 @@ def get_all_jobs_for_user(user_id: int):
             all_jobs = [SupabaseJobDetails(**job) for job in response.data]
             return {
                 'statusCode': 200,
-                'body': SupabaseJobList(jobs=all_jobs).model_dump()
+                'body': SupabaseJobList(jobs=all_jobs).model_dump(indent=2)
             }
         else:
             return {
                 'statusCode': 200,
-                'body': json.dumps(SupabaseJobList(jobs=[]).model_dump())
+                'body': SupabaseJobList(jobs=[]).model_dump(indent=2)
             }
     except Exception as e:
         logger.error(f"Error getting all jobs for user {user_id}")

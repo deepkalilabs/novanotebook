@@ -3,7 +3,8 @@
 import { use, useEffect } from 'react';
 import NotebookPage from '@/components/notebook/NotebookPage';
 import { useRouter } from 'next/navigation';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+// import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { supabase } from '@/lib/supabase';
 
 export default function Notebook({      
   params,
@@ -12,7 +13,8 @@ export default function Notebook({
 }) {
   const resolvedParams = use(params);
   const router = useRouter();
-  const supabase = createClientComponentClient();
+  // const supabase = createClientComponentClient();
+  // const { data: { session }, error } = await supabase.auth.getSession();
 
   useEffect(() => {
     const checkSession = async () => {

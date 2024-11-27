@@ -29,6 +29,12 @@ sessions = {}
 
 @app.websocket("/ws/{session_id}")
 async def websocket_endpoint(websocket: WebSocket, session_id: str):
+    
+    def get_relevant_env_path(env_name: str):
+        curr_envs = {os.path.basename(env): env for env in json.loads(sh.conda("env", "list", "--json"))['envs']}
+        relevant_env_path = curr_envs.get(env_name, None)
+        return relevant_env_path
+    
     print(f"New connection with session ID: {session_id}")
     
     await websocket.accept()
@@ -37,17 +43,19 @@ async def websocket_endpoint(websocket: WebSocket, session_id: str):
 
     if session_id not in sessions:
         # Start a new kernel for the session
-        user_id = 1
+        user_id = 4
         env_name = f"venv_kernel_{user_id}"
-        curr_envs = {os.path.basename(env): env for env in json.loads(sh.conda("env", "list", "--json"))['envs']}
-        relevant_env_path = curr_envs[env_name]
-        relevant_env_path_python = os.path.join(relevant_env_path, "bin", "python3")
+        relevant_env_path = get_relevant_env_path(env_name)
         
-        if env_name not in curr_envs:
+        if not relevant_env_path:
             sh.conda(
                 "create", "-n", env_name, "python=3.9", "ipykernel",
                 _out=sys.stdout, _err=sys.stderr, force=True
             )
+            relevant_env_path = get_relevant_env_path(env_name)
+            
+        relevant_env_path_python = os.path.join(relevant_env_path, "bin", "python3")
+        
         try:
             sh.Command(relevant_env_path_python)(
                 "-m", "ipykernel", "install", 
@@ -126,6 +134,7 @@ async def websocket_endpoint(websocket: WebSocket, session_id: str):
                 
                 status, message = lambda_handler.create_api_endpoint()
                 response = OutputGenerateLambdaMessage(type='lambda_generated', success=status, message=message)
+                # sleep(3) # Wait for API to be registered at AWS
                 await websocket.send_json(response.model_dump())
                 
             msgOutput = ''

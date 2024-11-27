@@ -7,7 +7,8 @@ import { useNotebookConnection } from '@/hooks/useNotebookConnection';
 import { NotebookToolbar } from '@/components/notebook/NotebookToolbar';
 import { NotebookCell } from '@/components/notebook/NotebookCell';
 import { OutputDeployMessage } from '@/app/types';
-import DeploymentDialog from './NotebookDeploy';
+import DeploymentDialog from '@/components/notebook/NotebookDeploy';
+import NotebookPageSidebar from '@/components/notebook/Sidebar';
 
 export default function NotebookPage({ notebookId }: { notebookId: string }) {
   const { toast } = useToast();
@@ -96,10 +97,14 @@ export default function NotebookPage({ notebookId }: { notebookId: string }) {
   console.log(notebookId);
 
   return (
-    <div className="container mx-auto py-8">
-      <div className="flex items-center justify-between mb-6">
+    <div className="flex min-h-screen">
+      {/* <div className="flex items-center justify-between mb-6">
         <h1 className="text-3xl font-bold">Python Notebook</h1>
-      </div>
+      </div> */}
+      <NotebookPageSidebar notebookId={notebookId} isConnected={isConnected} />
+
+      <div className="container mx-auto py-8">
+
 
       { isDeploying && (
           <DeploymentDialog
@@ -142,8 +147,9 @@ export default function NotebookPage({ notebookId }: { notebookId: string }) {
         {cells.length === 0 && (
           <div className="text-center py-8 text-muted-foreground">
             No cells yet. Click Add Cell to create one.
-          </div>
-        )} 
+            </div>
+          )} 
+        </div>
       </div>
     </div>
   );
