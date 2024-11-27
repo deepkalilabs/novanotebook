@@ -40,18 +40,16 @@ class LambdaGenerator:
             "scripts"
         )
         
-        self.aws_role_identifier = "notebook-lambda-generator"
-        self.region = "us-west-1"
+        self.aws_role_identifier = os.environ.get("AWS_ROLE_IDENTIFIER")
+        self.region = os.environ.get("AWS_REGION")
         
         self.ecr_manager = ECRManager(self.lambda_fn_name, self.base_folder_path)
         
-        self.lambda_client = boto3.client('lambda', region_name='us-west-1')
+        self.lambda_client = boto3.client('lambda', region_name=self.region)
         
         self.api_gateway_client = boto3.client('apigateway')
 
         self.lambda_fn_arn = ''
-        self.status_lambda_arn = 'arn:aws:lambda:us-west-1:891377239624:function:lambda_status_handler'
-
         self.api_id = ''
         self.api_root_id = ''
         self.submit_endpoint_id = ''
