@@ -3,7 +3,7 @@
 Jupyter notebooks deserve more love. We want to help teams ship technical AI-workflows (see our recipes section for examples) from a notebook to production API within 10 minutes without relying on engineering or infra teams.
 
 ![Build Status](https://img.shields.io/badge/build-passing-brightgreen) 
-![License](https://img.shields.io/badge/license-MIT-blue)
+![License](https://img.shields.io/badge/license-Apache-blue)
 ![Python](https://img.shields.io/badge/python-3.8%2B-blue)
 
 <img src="/api/placeholder/800/400" alt="Dune Demo" />
@@ -18,7 +18,7 @@ Jupyter notebooks deserve more love. We want to help teams ship technical AI-wor
 - [ ] **Team Collaboration**: Team collaboration with built-in review workflows
 
 ## 🚀 Quick Start
-t
+
 
 ## 💡 Why NovaNotebook?
 
