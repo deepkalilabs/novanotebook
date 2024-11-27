@@ -25,7 +25,7 @@
 .DS_Store
 *.pem
 .env
-.env.*
+.env.
 !.env.example
 
 # Debug
