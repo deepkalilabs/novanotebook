@@ -18,7 +18,7 @@ Jupyter notebooks deserve more love. We want to help teams ship technical AI-wor
 - [ ] **Team Collaboration**: Team collaboration with built-in review workflows
 
 ## 🚀 Quick Start
-
+- [Getting Started Guide](docs/getting-started.md)
 
 ## 💡 Why NovaNotebook?
 
