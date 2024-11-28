@@ -98,14 +98,7 @@ export default function NotebookPage({ notebookId }: { notebookId: string }) {
 
   return (
     <div className="flex min-h-screen">
-      {/* <div className="flex items-center justify-between mb-6">
-        <h1 className="text-3xl font-bold">Python Notebook</h1>
-      </div> */}
-      <NotebookPageSidebar notebookId={notebookId} isConnected={isConnected} />
-
       <div className="container mx-auto py-8">
-
-
       { isDeploying && (
           <DeploymentDialog
             isOpen={isDeploying}

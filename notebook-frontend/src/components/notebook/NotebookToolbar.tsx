@@ -20,6 +20,7 @@ interface NotebookToolbarProps {
   onHandleDeploy?: () => Promise<void>;
 }
 
+//TODO: Add name and description to the toolbar
 export function NotebookToolbar({
   onHandleAddCell,
   onHandleSave,
@@ -31,6 +32,24 @@ export function NotebookToolbar({
 }: NotebookToolbarProps) {
   return (
     <div className="flex items-center space-x-2 mb-4">
+      <div className="flex items-center gap-6 px-4 py-2 bg-muted rounded-lg text-sm text-muted-foreground">
+        <div className="flex items-center gap-2">
+          <span className="font-medium">Name:</span>
+          <span className="text-foreground">DatasetEnrich</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="font-medium">Status:</span>
+          <div className="flex items-center gap-1.5">
+            <span className={`inline-flex h-2 w-2 rounded-full ${
+              isConnected ? 'bg-green-500 animate-pulse' : 'bg-red-500'
+            }`} />
+            <span className="text-xs">
+              {isConnected ? 'Connected' : 'Disconnected'}
+            </span>
+          </div>
+        </div>
+      </div>
+
       <Button 
         onClick={onHandleAddCell}
         className="gap-2"
