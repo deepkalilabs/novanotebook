@@ -71,7 +71,7 @@ export default function NotebookPageSidebar({ notebookId, isConnected }: { noteb
       <Button
         variant="ghost"
         size="icon"
-        className="absolute left-4 top-1 hidden lg:flex"
+        className="absolute -left-4 top-1 hidden lg:flex"
         onClick={() => setIsCollapsed(!isCollapsed)}
       >
         {isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
@@ -93,7 +93,7 @@ export default function NotebookPageSidebar({ notebookId, isConnected }: { noteb
 
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-screen px-4">
       {/* Mobile Sidebar */}
       <Sheet open={isMobileOpen} onOpenChange={setIsMobileOpen}>
         <SheetTrigger asChild className="lg:hidden absolute left-4 top-4">

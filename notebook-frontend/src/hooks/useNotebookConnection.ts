@@ -6,7 +6,7 @@ import useWebSocket, { ReadyState } from 'react-use-websocket';
 import { v4 as uuidv4 } from 'uuid';
 import { NotebookCell, OutputDeployMessage } from '@/app/types';
 import { OutputExecutionMessage, OutputSaveMessage, OutputLoadMessage } from '@/app/types';
-
+import { useToast } from '@/hooks/use-toast';
 interface NotebookConnectionProps {
   onOutput: (cellId: string, output: string) => void;
   onNotebookLoaded: (cells: NotebookCell[]) => void;
@@ -22,19 +22,20 @@ export function useNotebookConnection({
   onNotebookDeployed,
   onError
 }: NotebookConnectionProps) {
+  const { toast } = useToast();
   const sessionId = useRef(uuidv4()).current;
   const setupSocketUrl = useCallback(() => {
-    
+
     const socketBaseURL = process.env.NODE_ENV === 'development' ? '0.0.0.0' : process.env.NEXT_PUBLIC_AWS_EC2_IP;
 
     let socketUrl = '';
 
     if (process.env.NODE_ENV === 'development') {
       socketUrl = `ws://0.0.0.0:8000/ws/${sessionId}`;
-      // console.log(`Socket URL: ${socketUrl}, sessionId: ${sessionId}, socketURL: ${socketBaseURL}`);
+      console.log(`Socket URL: ${socketUrl}, sessionId: ${sessionId}, socketURL: ${socketBaseURL}`);
     } else {
       socketUrl = `wss://${socketBaseURL}/ws/${sessionId}`;
-      // console.log(`Socket URL: ${socketUrl}, sessionId: ${sessionId}`);
+      console.log(`Socket URL: ${socketUrl}, sessionId: ${sessionId}`);
     }
 
     return socketUrl;
@@ -45,13 +46,26 @@ export function useNotebookConnection({
   const {
     sendMessage,
     lastMessage,
-    readyState
+    readyState,
   } = useWebSocket(socketUrl, {
-    onOpen: () => console.log('Connected to Python kernel'),
-    onClose: () => console.log('Disconnected from Python kernel'),
-    onError: () => onError?.('Failed to connect to Python kernel'),
-    // shouldReconnect: (closeEvent) => true,
-    reconnectAttempts: 10,
+    onOpen: () => {
+      toast({
+        title: "Connected to Python kernel",
+        description: "Successfully connected to Python kernel"
+      });
+    },
+    onClose: () => {
+      toast({
+        title: "Disconnected from Python kernel",
+        description: "Disconnected from Python kernel"
+      });
+    },
+    onError: (event) => {
+      console.log("onError", event);
+      onError?.("Failed to connect to Python kernel");
+    },
+    shouldReconnect: () => true,
+    reconnectAttempts: 3,
     reconnectInterval: 3000,
   });
 

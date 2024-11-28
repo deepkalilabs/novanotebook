@@ -36,29 +36,29 @@ export default function NotebookPage({ notebookId }: { notebookId: string }) {
     onNotebookSaved: (data) => {
       if (data.success) {
         console.log(`Toasting: Received notebook_saved: ${data.type}, success: ${data.success}, message: ${data.message}`);
-        // TODO: Toast doesn't work
         toast({
-          title: 'Notebook saved',
-          description: `Successfully saved notebook. ${data.message}`,
+          title: "Notebook saved",
+          description: data.message,
+          variant: "default"
         });
       } else {
         toast({
-          title: 'Notebook save failed',
-          description: `Failed to save notebook. ${data.message}`,
-          variant: 'destructive'
+          title: "Failed to save",
+          description: data.message,
+          variant: "destructive"
         });
       }
     },
     onNotebookDeployed: (data) => {
       console.log(`Received notebook_deployed: ${data.type}, success: ${data.success}, message: ${data.message}`);
-      setDeploymentData(data);
       setIsDeploying(true);
+      setDeploymentData(data);
     },
     onError: (error) => {
       toast({
-        title: 'Error',
+        title: "Failed to deploy",
         description: error,
-        variant: 'destructive'
+        variant: "destructive"
       });
     }
   });
