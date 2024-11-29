@@ -6,7 +6,7 @@ Jupyter notebooks deserve more love. We want to help teams ship technical AI-wor
 ![License](https://img.shields.io/badge/license-Apache-blue)
 ![Python](https://img.shields.io/badge/python-3.8%2B-blue)
 
-<img src="/api/placeholder/800/400" alt="NovaNotebook Demo" />
+- [V0-Demo](https://www.loom.com/embed/594f27d2f54646a499dd437e5e40e2ff?sid=b341ffea-167f-405e-a9d4-be4c9f545b0d)
 
 ## 🌟 Features
 

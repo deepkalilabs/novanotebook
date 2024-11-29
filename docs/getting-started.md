@@ -38,7 +38,7 @@ Nova Notebook uses:
    SUPABASE_KEY=your_key
    ```
 
-### 2. AWS Lambda Setup
+### 2. AWS Setup
 
 1. Create an AWS Lambda execution role:
    ```bash
@@ -60,7 +60,48 @@ Nova Notebook uses:
    LAMBDA_EXECUTION_ROLE=arn:aws:iam::YOUR_ACCOUNT_ID:role/notebook-lambda-generator
    ```
 
+4. AWS Configure 
+   ```bash
+   aws configure
+   ```
+
 ### 3. Package Installation
+
+Install miniconda and activate conda in your environment
+
+As of Nov 28, 2024:
+```bash
+mkdir -p ~/miniconda3
+wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda3/miniconda.sh
+bash ~/miniconda3/miniconda.sh -b -u -p ~/miniconda3
+rm ~/miniconda3/miniconda.sh
+source ~/.bashrc
+source ~/miniconda3/bin/activate
+```
+
+Install Docker
+As of Nov 28, 2024
+```bash
+# Add Docker's official GPG key:
+sudo apt-get update
+sudo apt-get install ca-certificates curl
+sudo install -m 0755 -d /etc/apt/keyrings
+sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+sudo chmod a+r /etc/apt/keyrings/docker.asc
+# Add the repository to Apt sources:
+echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
+  $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
+  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+sudo apt-get update
+
+sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+
+sudo docker run hello-world
+
+docker info # Verify docker has the right permissions
+```
 
 Install dependencies using UV:
 ```bash
@@ -106,6 +147,43 @@ python main.py
         yarn install
         yarn dev
     ```
+
+### 7. Creating your first notebook
+
+We've decided to rebuild the notebook interface from scratch we're getting the interface to feature parity. There's two main things you should know:
+
+1. Run all !pip install commands in a new cell in the first line. If `!pip` is not on the first line of a cell, the magic command won't work.
+
+```bash
+> Add new cell
+> !pip install a b c
+```
+
+2. Define the interface for your code. Think of it as a clean function/parameter set invoking your code. There's two parts to this:
+   2.1. Define the interface for the function parameters.
+   
+   ```bash
+      class EntrypointParams(BaseModel):
+         param1: param1_type
+         param2: param2_type
+         .
+         paramN: paramN_type
+   ```
+
+   2.2 Define the interface for the code execution.
+   
+   ```bash
+      def entrypoint(data: EntrypointParams):
+         param1 = data.param1
+         param2 = data.param2
+         paramN = data.paramN
+
+         result = driver_func(param1, param2, paramN)
+         return result
+   ```
+
+   This helps us understand how to execute your code and how the invocations work so we can generate an API that works!
+
 
 ## What's Next?
 

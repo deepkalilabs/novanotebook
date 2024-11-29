@@ -106,7 +106,7 @@ async def websocket_endpoint(websocket: WebSocket, session_id: str):
                 # TODO: Better dependency management here.
                 # TODO: Get status/msg directly from function.
                 # TODO: Make a base lambda layer for basic dependencies.
-                dependencies = await execute_code(kernel_client=kc, relevant_env_path=relevant_env_path, code='!pip freeze')
+                dependencies = await execute_code(kernel_client=kc, relevant_env_path=relevant_env_path, code='!pip list --format=freeze')
                 lambda_handler = LambdaGenerator(data['allCode'], 1, data['notebookName'], dependencies)
                 status = False
 
