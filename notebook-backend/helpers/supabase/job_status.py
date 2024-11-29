@@ -17,7 +17,7 @@ supabase: Client = create_client(
 )
 
 
-def get_all_jobs_for_user(user_id: str):
+def get_all_jobs_for_user(user_id: UUID):
     try:
         response = supabase.table('lambda_jobs') \
             .select('request_id,input_params,completed,result,created_at,updated_at,completed_at,error, notebook_id') \
