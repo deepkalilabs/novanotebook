@@ -8,7 +8,6 @@ import { NotebookToolbar } from '@/components/notebook/NotebookToolbar';
 import { NotebookCell } from '@/components/notebook/NotebookCell';
 import { OutputDeployMessage } from '@/app/types';
 import DeploymentDialog from '@/components/notebook/NotebookDeploy';
-import NotebookPageSidebar from '@/components/notebook/Sidebar';
 
 export default function NotebookPage({ notebookId }: { notebookId: string }) {
   const { toast } = useToast();

@@ -3,7 +3,6 @@
 import { use, useEffect } from 'react';
 import NotebookPage from '@/components/notebook/NotebookPage';
 import { useRouter } from 'next/navigation';
-// import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { supabase } from '@/lib/supabase';
 
 export default function Notebook({      
