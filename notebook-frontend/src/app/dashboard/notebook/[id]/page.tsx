@@ -7,13 +7,17 @@ import { supabase } from '@/lib/supabase';
 
 export default function Notebook({      
   params,
+  searchParams,
 }: {
-  params: Promise<{ id: string }>
+  params: Promise<{ id: string }>,
+  searchParams: Promise<{ name?: string }>
 }) {
   const resolvedParams = use(params);
+  const resolvedSearchParams = use(searchParams);
+  const { id } = resolvedParams;
+  const { name } = resolvedSearchParams;
   const router = useRouter();
-  // const supabase = createClientComponentClient();
-  // const { data: { session }, error } = await supabase.auth.getSession();
+ 
 
   useEffect(() => {
     const checkSession = async () => {
@@ -26,5 +30,5 @@ export default function Notebook({
     checkSession();
   }, []);
 
-  return <NotebookPage notebookId={resolvedParams.id} />;
+  return <NotebookPage notebookId={id} name={name || ''} />;
 }

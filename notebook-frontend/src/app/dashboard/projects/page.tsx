@@ -124,9 +124,8 @@ export default function ProjectsPage() {
         setNotebooks(notebooks.filter((notebook: { id: number }) => notebook.id !== notebookId));
     }
 
-    const openNotebook = (notebookId: number) => {
-        router.push(`/dashboard/notebook/${notebookId}`);
-        // TODO: Open the notebook in a new tab
+    const openNotebook = (notebookId: number, name: string) => {
+        router.push(`/dashboard/notebook/${notebookId}?name=${name}`);
     }
 
     useEffect(() => {
@@ -218,7 +217,7 @@ export default function ProjectsPage() {
                     <Button
                       variant="secondary" 
                       className="w-full"
-                      onClick={() => openNotebook(notebook.id)}
+                      onClick={() => openNotebook(notebook.id, notebook.name)}
                     >
                       Open Notebook
                     </Button>

@@ -9,7 +9,7 @@ import { NotebookCell } from '@/components/notebook/NotebookCell';
 import { OutputDeployMessage } from '@/app/types';
 import DeploymentDialog from '@/components/notebook/NotebookDeploy';
 
-export default function NotebookPage({ notebookId }: { notebookId: string }) {
+export default function NotebookPage({ notebookId, name }: { notebookId: string, name: string }) {
   const { toast } = useToast();
   const { cells, addCell, updateCellCode, updateCellOutput, deleteCell, moveCellUp, moveCellDown, setCells } = useNotebookStore();
   const [ isDeploying, setIsDeploying ] = useState(false);
@@ -109,6 +109,7 @@ export default function NotebookPage({ notebookId }: { notebookId: string }) {
 
       <div className="sticky top-0 z-50 bg-background py-2 border-b">
         <NotebookToolbar
+          name={name}
           onHandleAddCell={addCell}
           onHandleSave={handleSave}
           onHandleLoad={handleLoad}
