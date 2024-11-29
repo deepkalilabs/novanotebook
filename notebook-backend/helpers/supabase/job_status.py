@@ -73,4 +73,24 @@ def get_job_by_request_id(request_id: str, user_id: UUID):
             'body': json.dumps({'error': str(e)})
         }
 
-    
+def get_all_jobs_for_notebook(notebook_id: UUID):
+    try:
+        response = supabase.table('lambda_jobs') \
+            .select('request_id,input_params,completed,result,created_at,updated_at,completed_at,error,notebook_id') \
+            .eq('notebook_id', notebook_id) \
+            .execute()
+        
+        jobs = [SupabaseJobDetails(**job) for job in response.data]
+        job_list = SupabaseJobList(jobs=jobs)
+        print(job_list)
+        
+        return {
+            'statusCode': 200,
+            'body': json.dumps(job_list.model_dump())
+        }
+    except Exception as e:
+        logger.error(f"Error getting all jobs for notebook {notebook_id}: {str(e)}")
+        return {
+            'statusCode': 500,
+            'body': json.dumps({'error': str(e)})
+        }

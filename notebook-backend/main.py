@@ -13,7 +13,7 @@ import sh
 from jupyter_client.kernelspec import KernelSpecManager
 import sys
 from io import StringIO
-from helpers.supabase.job_status import get_all_jobs_for_user, get_job_by_request_id
+from helpers.supabase.job_status import get_all_jobs_for_user, get_job_by_request_id, get_all_jobs_for_notebook
 from helpers.types import OutputExecutionMessage, OutputSaveMessage, OutputLoadMessage, OutputGenerateLambdaMessage, SupabaseJobDetails, SupabaseJobList
 from uuid import UUID
 app = FastAPI()
@@ -236,6 +236,10 @@ async def status_endpoint(user_id: UUID):
 @app.get("/status/jobs/{user_id}/{request_id}")
 async def status_endpoint(user_id: int, request_id: str):
     return get_job_by_request_id(request_id, user_id)
+
+@app.get("/status/notebook/jobs/{notebook_id}")
+async def status_endpoint(notebook_id: UUID):
+    return get_all_jobs_for_notebook(notebook_id)
 
 if __name__ == "__main__":
     if not os.path.exists('notebooks'):

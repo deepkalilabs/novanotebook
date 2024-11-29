@@ -4,6 +4,10 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 import { Home, Settings, Activity } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Sidebar } from "@/components/ui/sidebar"
+import { supabase } from '@/lib/supabase';
+import { useRouter } from "next/navigation"
+import { useEffect } from "react"
+
 
 const sidebarNavItems = [
   {
@@ -53,6 +57,19 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode
 }) {
+  const router = useRouter();
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        router.push('/auth/signin');
+      }
+    };
+    
+    checkAuth();
+  }, [router]);
+
   return (
     <SidebarProvider>
       <AppSidebar />

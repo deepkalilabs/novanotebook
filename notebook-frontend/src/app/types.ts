@@ -52,3 +52,19 @@ export interface OutputDeployMessage {
     success: boolean;
     message: string;
 }
+
+export interface Job {
+    completed: boolean | null;
+    completed_at: string | null;
+    created_at: string;
+    error: string | null;
+    input_params: any | null;
+    notebook_id: string;
+    request_id: string;
+    result: any | null;
+    updated_at: string;
+}
+
+export interface Jobs {
+  jobs: Job[];
+}
