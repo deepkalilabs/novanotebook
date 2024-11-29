@@ -207,12 +207,12 @@ const JobStatusDashboard = () => {
           {sections.map((section) => (
             <div key={section} className="space-y-4">
               <h2 className="text-sm font-semibold text-muted-foreground px-1">{section}</h2>
-              <div className="grid gap-4">
-                {groupedJobs[section].map((job: Job) => {
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {groupedJobs[section]?.map((job: Job) => {
                   const status = getStatusDetails(job.status);
                   
                   return (
-                    <Sheet key={job.id}>
+                    <Sheet key={`${job.notebook_id}-${job.request_id}`}>
                       <SheetTrigger asChild>
                         <Card className="relative hover:bg-accent transition-colors cursor-pointer">
                           <CardHeader className="pb-2">
