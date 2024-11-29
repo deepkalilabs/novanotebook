@@ -58,10 +58,10 @@ export interface Job {
     completed_at: string | null;
     created_at: string;
     error: string | null;
-    input_params: any | null;
+    input_params: unknown | null;
     notebook_id: string;
     request_id: string;
-    result: any | null;
+    result: unknown | null;
     updated_at: string;
 }
 

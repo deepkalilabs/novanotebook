@@ -18,7 +18,13 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-export default function NotebookPage({ notebookId, name, jobs }: { notebookId: string, name: string, jobs: Jobs }) {
+interface NotebookPageProps {
+  notebookId: string;
+  name: string;
+  jobs?: Jobs;
+}
+
+export default function NotebookPage({ notebookId, name, jobs }: NotebookPageProps) {
   const { toast } = useToast();
   const { cells, addCell, updateCellCode, updateCellOutput, deleteCell, moveCellUp, moveCellDown, setCells } = useNotebookStore();
   const [ isDeploying, setIsDeploying ] = useState(false);
@@ -102,7 +108,7 @@ export default function NotebookPage({ notebookId, name, jobs }: { notebookId: s
   }
 
   console.log("notebookId:", notebookId);
-  console.log("jobs:", jobs.jobs);
+  console.log("jobs:", jobs?.jobs);
   //Iterate over jobs
   jobs?.jobs?.map(job => {
     console.log("job:", job);
