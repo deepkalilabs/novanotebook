@@ -1,30 +1,35 @@
 'use client'
 
-import { use, useEffect } from 'react';
+import { useParams, useSearchParams } from 'next/navigation';
+import { useState, useEffect } from 'react';
 import NotebookPage from '@/components/notebook/NotebookPage';
-import { useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
+import { Jobs } from '@/app/types';
 
-export default function Notebook({      
-  params,
-}: {
-  params: Promise<{ id: string }>
-}) {
-  const resolvedParams = use(params);
-  const router = useRouter();
-  // const supabase = createClientComponentClient();
-  // const { data: { session }, error } = await supabase.auth.getSession();
+export default function Notebook() {
+  const params = useParams();
+  const searchParams = useSearchParams();
+  const [jobs, setJobs] = useState<Jobs>({} as Jobs);
+  
+  const id = params.id as string;
+  const name = searchParams.get('name') || '';
 
   useEffect(() => {
-    const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        router.push('/auth/signin');
+    const fetchJobs = async () => {
+      const response = await fetch(`/api/get_notebook_jobs/${id}`);
+      const jobsData = await response.json();
+      
+      if (jobsData.statusCode !== 200) {
+        setJobs({} as Jobs);
+      } else {
+        console.log('jobsData:', JSON.parse(jobsData.body));
+        setJobs(JSON.parse(jobsData.body));
       }
     };
 
-    checkSession();
-  }, []);
+    fetchJobs();
+  }, [id]);
 
-  return <NotebookPage notebookId={resolvedParams.id} />;
+  return (
+    <NotebookPage notebookId={id} name={name} jobs={jobs} />
+  )
 }

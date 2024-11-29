@@ -11,6 +11,7 @@ import { DeployButton } from './toolbar/DeployButton';
 import { RestartKernelButton } from './toolbar/RestartKernelButton';
 
 interface NotebookToolbarProps {
+  name: string;
   onHandleAddCell: () => void;
   onHandleSave: (filename: string) => Promise<void>;
   onHandleLoad: (filename: string) => Promise<void>;
@@ -22,6 +23,7 @@ interface NotebookToolbarProps {
 
 //TODO: Add name and description to the toolbar
 export function NotebookToolbar({
+  name,
   onHandleAddCell,
   onHandleSave,
   onHandleLoad,
@@ -35,7 +37,7 @@ export function NotebookToolbar({
       <div className="flex items-center gap-6 px-4 py-2 bg-muted rounded-lg text-sm text-muted-foreground">
         <div className="flex items-center gap-2">
           <span className="font-medium">Name:</span>
-          <span className="text-foreground">DatasetEnrich</span>
+          <span className="text-foreground">{name}</span>
         </div>
         <div className="flex items-center gap-2">
           <span className="font-medium">Status:</span>
