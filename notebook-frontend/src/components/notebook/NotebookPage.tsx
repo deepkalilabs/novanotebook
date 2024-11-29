@@ -8,7 +8,6 @@ import { NotebookToolbar } from '@/components/notebook/NotebookToolbar';
 import { NotebookCell } from '@/components/notebook/NotebookCell';
 import { OutputDeployMessage } from '@/app/types';
 import DeploymentDialog from '@/components/notebook/NotebookDeploy';
-import NotebookPageSidebar from '@/components/notebook/Sidebar';
 
 export default function NotebookPage({ notebookId }: { notebookId: string }) {
   const { toast } = useToast();
@@ -98,14 +97,7 @@ export default function NotebookPage({ notebookId }: { notebookId: string }) {
 
   return (
     <div className="flex min-h-screen">
-      {/* <div className="flex items-center justify-between mb-6">
-        <h1 className="text-3xl font-bold">Python Notebook</h1>
-      </div> */}
-      <NotebookPageSidebar notebookId={notebookId} isConnected={isConnected} />
-
       <div className="container mx-auto py-8">
-
-
       { isDeploying && (
           <DeploymentDialog
             isOpen={isDeploying}

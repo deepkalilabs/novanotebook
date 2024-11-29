@@ -1,4 +1,5 @@
 from pydantic import BaseModel
+from typing import Optional
 
 class OutputExecutionMessage(BaseModel):
     type: str
@@ -22,14 +23,15 @@ class OutputGenerateLambdaMessage(BaseModel):
     message: str
 
 class SupabaseJobDetails(BaseModel):
-    request_id: str
-    input_params: dict | None
-    completed: bool | None
-    result: dict | None
-    created_at: str | None
-    updated_at: str | None
-    completed_at: str | None
-    error: str | None
+    request_id: Optional[str] = None
+    input_params: Optional[dict] = None
+    completed: Optional[bool] = False
+    result: Optional[dict] = None
+    created_at: Optional[str] = None
+    updated_at: Optional[str] = None
+    completed_at: Optional[str] = None
+    error: Optional[str] = None
+    notebook_id: Optional[str] = None
     
 class SupabaseJobList(BaseModel):
     jobs: list[SupabaseJobDetails]
