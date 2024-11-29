@@ -27,10 +27,33 @@ const JobStatus = {
   ERROR: 'error'
 } as const;
 
+type JobStatusType = typeof JobStatus[keyof typeof JobStatus];
+
+interface Job {
+  id: string;
+  notebook_id: string;
+  request_id: string;
+  status: JobStatusType;
+  created_at: string;
+  updated_at: string;
+  completed_at?: string;
+  completed: boolean;
+  error?: string;
+  input_params?: Record<string, unknown>;
+  result?: Record<string, unknown>;
+  created_time: string;
+  updated_time: string;
+  completed_time?: string;
+}
+
+interface GroupedJobs {
+  [key: string]: Job[];
+}
+
 const JobStatusDashboard = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [jobs, setJobs] = useState([]);
+  const [jobs, setJobs] = useState<Job[]>([]);
   const [userId, setUserId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -47,7 +70,7 @@ const JobStatusDashboard = () => {
           .then(response => response.json())
           .then(data => {
             const jobsData = data.body ? JSON.parse(data.body).jobs : [];
-            const processedJobs = jobsData.map((job: any) => ({
+            const processedJobs = jobsData.map((job: Job) => ({
               ...job,
               status: job.error ? JobStatus.ERROR : 
                      job.completed ? JobStatus.COMPLETED : 
@@ -114,15 +137,15 @@ const JobStatusDashboard = () => {
     }
   };
 
-  const groupJobsByDate = (jobs: any) => {
-    const filtered = jobs.filter((job: any) => {
+  const groupJobsByDate = (jobs: Job[]) => {
+    const filtered = jobs.filter((job: Job) => {
       const matchesSearch = (job.notebook_id?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
                            (job.request_id?.toLowerCase() || '').includes(searchTerm.toLowerCase());
       const matchesStatus = statusFilter === 'all' || job.status === statusFilter;
       return matchesSearch && matchesStatus;
     });
 
-    return filtered.reduce((groups: any, job: any) => {
+    return filtered.reduce((groups: GroupedJobs, job: Job) => {
       const section = getDateSection(job.created_at || new Date().toISOString());
       if (!groups[section]) {
         groups[section] = [];
@@ -185,7 +208,7 @@ const JobStatusDashboard = () => {
             <div key={section} className="space-y-4">
               <h2 className="text-sm font-semibold text-muted-foreground px-1">{section}</h2>
               <div className="grid gap-4">
-                {groupedJobs[section].map((job: any) => {
+                {groupedJobs[section].map((job: Job) => {
                   const status = getStatusDetails(job.status);
                   
                   return (
