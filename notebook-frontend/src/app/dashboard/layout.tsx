@@ -1,4 +1,5 @@
 "use client"
+
 import { Home, Settings, Activity, ChevronLeft, ChevronRight } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -60,10 +61,7 @@ export default function DashboardLayout({
 
   return (
     <div className="flex min-h-screen">
-      <div className={cn(
-        "hidden border-r bg-gray-100/40 lg:block dark:bg-gray-800/40 relative transition-all duration-300",
-        isCollapsed ? "w-16" : "w-64"
-      )}>
+      <div className="hidden border-r bg-gray-100/40 lg:block dark:bg-gray-800/40">
         <div className="flex h-full flex-col gap-2">
           <div className="flex h-[60px] items-center border-b px-6">
             {!isCollapsed && <span className="font-bold">NovaNotebook</span>}

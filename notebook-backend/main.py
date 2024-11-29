@@ -1,3 +1,4 @@
+import string
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 import uuid
@@ -14,6 +15,7 @@ import sys
 from io import StringIO
 from helpers.supabase.job_status import get_all_jobs_for_user, get_job_by_request_id
 from helpers.types import OutputExecutionMessage, OutputSaveMessage, OutputLoadMessage, OutputGenerateLambdaMessage, SupabaseJobDetails, SupabaseJobList
+from uuid import UUID
 app = FastAPI()
 
 # Enable CORS for frontend communication
@@ -227,9 +229,9 @@ async def load_notebook(filename: str):
     return {"status": "success", "notebook": notebook, "message": "Notebook loaded successfully."}
 
 @app.get("/status/jobs/{user_id}")
-async def status_endpoint(user_id: int):
+async def status_endpoint(user_id: UUID):
     # TODO: Check if user has access to this data.
-    return get_all_jobs_for_user(user_id)
+    return get_all_jobs_for_user(str(user_id))
 
 @app.get("/status/jobs/{user_id}/{request_id}")
 async def status_endpoint(user_id: int, request_id: str):
