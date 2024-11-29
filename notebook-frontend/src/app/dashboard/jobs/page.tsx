@@ -5,7 +5,7 @@ import {
   Loader2, AlertCircle, CheckCircle, RefreshCcw, 
   Search, Filter, FileCode, Briefcase 
 } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
@@ -19,7 +19,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { getApiUrl } from '@/app/lib/config';
 import { supabase } from '@/lib/supabase';
 
 const JobStatus = {
