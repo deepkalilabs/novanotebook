@@ -15,6 +15,7 @@ import sys
 from io import StringIO
 from helpers.supabase.job_status import get_all_jobs_for_user, get_job_by_request_id, get_all_jobs_for_notebook
 from helpers.types import OutputExecutionMessage, OutputSaveMessage, OutputLoadMessage, OutputGenerateLambdaMessage, SupabaseJobDetails, SupabaseJobList
+from helpers.aws.s3.s3 import save_or_update_notebook
 from uuid import UUID
 app = FastAPI()
 
@@ -202,21 +203,32 @@ async def execute_code(kernel_client, relevant_env_path: str, code: str) -> str:
             continue
     return output
 
+"""
+To do: Save the notebook to s3 if prod. Otherwise, save to local.
+"""
 async def save_notebook(data: dict):
     try:
         notebook = data.get('cells')
         filename = data.get('filename')
+        print("Filename:", filename)
+        print("Notebook:", notebook)
 
         if not notebook:
             return {"success": False, "message": "No cells found in the file provided."}
         
         filepath = os.path.join('notebooks', filename)
-        with open(filepath, 'w') as f:
-            json.dump(notebook, f)
-        print(f"Saved notebook to {filepath}")
-        return {"success": True, "message": "Notebook saved successfully."}
+        #Convert the notebook to a json string.
+        notebook_json = json.dumps(notebook)
+
+        #Save the notebook to s3.
+        response = save_or_update_notebook(notebook_json, filename)
+        url = response.get('url')
+        print("URL:", url)
+
+        print(f"Saved notebook to {url}")
+        return {"success": True, "message": "Notebook saved successfully.", "url": url}
     except Exception as e:
-        return {"success": False, "message": str(e)}
+        return {"success": False, "message": str(e), "url": None}
 
 async def load_notebook(filename: str):
     filepath = os.path.join('notebooks', filename)

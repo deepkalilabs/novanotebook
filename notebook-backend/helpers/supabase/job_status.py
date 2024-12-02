@@ -26,7 +26,6 @@ def get_all_jobs_for_user(user_id: UUID):
         
         jobs = [SupabaseJobDetails(**job) for job in response.data]
         job_list = SupabaseJobList(jobs=jobs)
-        print(job_list)
         
         return {
             'statusCode': 200,
@@ -82,7 +81,6 @@ def get_all_jobs_for_notebook(notebook_id: UUID):
         
         jobs = [SupabaseJobDetails(**job) for job in response.data]
         job_list = SupabaseJobList(jobs=jobs)
-        print(job_list)
         
         return {
             'statusCode': 200,
