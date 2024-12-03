@@ -1,6 +1,6 @@
-# Getting Started with Nova Notebook 🚀
+# Getting Started with Cosmic Notebook 🚀
 
-Nova Notebook is a next-generation Jupyter environment that enables data teams to deploy notebook code directly to production and create production-ready APIs. This guide will help you set up Nova Notebook in your local environment.
+Cosmic Notebook is a next-generation Jupyter environment that enables data teams to deploy notebook code directly to production and create production-ready APIs. This guide will help you set up Cosmic Notebook in your local environment.
 
 ## Prerequisites
 
@@ -12,7 +12,7 @@ Nova Notebook is a next-generation Jupyter environment that enables data teams t
 
 ## System Architecture
 
-Nova Notebook uses:
+Cosmic Notebook uses:
 - **AWS Lambda & API Gateway** for serverless functions.
 - **AWS ECR** for containerizing the code.
 - **Supabase** for authentication and data storage.
@@ -122,7 +122,7 @@ uv pip install --requirements pyproject.toml
 
 ### 5. Running the Server
 
-Start the Nova Notebook server:
+Start the Cosmic Notebook server:
 ```bash
 python main.py
 ```

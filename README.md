@@ -1,4 +1,4 @@
-# NovaNotebook 🌟
+# CosmicNotebook 🌟
 
 Jupyter notebooks deserve more love. We want to help teams ship technical AI-workflows (see our recipes section for examples) from a notebook to production API within 10 minutes without relying on engineering or infra teams.
 
@@ -20,7 +20,7 @@ Jupyter notebooks deserve more love. We want to help teams ship technical AI-wor
 ## 🚀 Quick Start
 - [Getting Started Guide](docs/getting-started.md)
 
-## 💡 Why NovaNotebook?
+## 💡 Why CosmicNotebook?
 
 Jupyter notebooks are great but functionality is severely limited to prototyping and experimentation. We believe teams should be shipping code directly from notebooks without having to rely on engineering or infra teams. With AI-powered code generation, we believe it's possible to:
 
@@ -40,7 +40,7 @@ Jupyter notebooks are great but functionality is severely limited to prototyping
 
 ## 🤝 Contributing
 
-Join us in going supernova! See our [Contributing Guide](CONTRIBUTING.md) to join the cause.
+Join us in exploring the cosmos of AI-workflows! See our [Contributing Guide](CONTRIBUTING.md) to join the cause.
 
 1. Fork the repository
 2. Create a feature branch
@@ -59,4 +59,4 @@ Apache 2.0 License - see [LICENSE](LICENSE) for details
 
 ---
 
-Made with ❤️ by the NovaNotebook team
+Made with ❤️ by the CosmicNotebook team
