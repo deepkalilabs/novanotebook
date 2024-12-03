@@ -11,6 +11,7 @@ Jupyter notebooks deserve more love. We want to help teams ship technical AI-wor
 ## 🌟 Features
 
 - [x] **10-minute deploy**: Deploy code from notebook to an API within 10 mins.
+  - [ ] **Migration to Postgres + SQLAlchemy**
 - [ ] **AI-Code Complete**: Context-aware LLMs that help you write code faster.
 - [ ] **AI-Code Cleaning**: Take your messy code from jupyter and transform it into code written with engineering best practices.
 - [ ] **Enterprise-grade security**: Ensure highest levels of security, controls, and latency guarantees for the API.
