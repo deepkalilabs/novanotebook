@@ -14,6 +14,7 @@ from jupyter_client.kernelspec import KernelSpecManager
 import sys
 from io import StringIO
 from helpers.supabase.job_status import get_all_jobs_for_user, get_job_by_request_id, get_all_jobs_for_notebook
+from helpers.aws.s3.s3 import save_or_update_notebook
 from helpers.types import OutputExecutionMessage, OutputSaveMessage, OutputLoadMessage, OutputGenerateLambdaMessage, SupabaseJobDetails, SupabaseJobList
 from uuid import UUID
 app = FastAPI()
@@ -206,14 +207,29 @@ async def save_notebook(data: dict):
     try:
         notebook = data.get('cells')
         filename = data.get('filename')
+        user_id = data.get('user_id')
+        notebook_id = data.get('notebook_id')
+
+        if not notebook_id:
+            return {"success": False, "message": "Notebook ID is required."}
+        
+        if not user_id:
+            return {"success": False, "message": "User ID is required."}
 
         if not notebook:
             return {"success": False, "message": "No cells found in the file provided."}
         
+
+        response = save_or_update_notebook(notebook_id, user_id, notebook)
+        print("response", response)
+        
+        # TODO: Save to s3 instead of local file system.
+        """"
         filepath = os.path.join('notebooks', filename)
         with open(filepath, 'w') as f:
             json.dump(notebook, f)
         print(f"Saved notebook to {filepath}")
+        """
         return {"success": True, "message": "Notebook saved successfully."}
     except Exception as e:
         return {"success": False, "message": str(e)}

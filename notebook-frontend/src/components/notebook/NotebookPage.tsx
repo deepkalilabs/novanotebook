@@ -17,14 +17,16 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { UserRoundIcon } from 'lucide-react';
 
 interface NotebookPageProps {
   notebookId: string;
+  userId: string;
   name: string;
   jobs?: Jobs;
 }
 
-export default function NotebookPage({ notebookId, name, jobs }: NotebookPageProps) {
+export default function NotebookPage({ notebookId, userId, name, jobs }: NotebookPageProps) {
   const { toast } = useToast();
   const { cells, addCell, updateCellCode, updateCellOutput, deleteCell, moveCellUp, moveCellDown, setCells } = useNotebookStore();
   const [ isDeploying, setIsDeploying ] = useState(false);
@@ -96,7 +98,7 @@ export default function NotebookPage({ notebookId, name, jobs }: NotebookPagePro
   };
 
   const handleSave = async (filename: string) => {
-    saveNotebook(cells, filename);
+    saveNotebook(cells, filename, notebookId, userId);
   };
 
   const handleLoad = async (filename: string) => {

@@ -12,7 +12,8 @@ export default function Notebook() {
   
   const id = params.id as string;
   const name = searchParams.get('name') || '';
-
+  const userId = JSON.parse(localStorage.getItem('user') || '{}').id || '';
+  
   useEffect(() => {
     const fetchJobs = async () => {
       const response = await fetch(`/api/get_notebook_jobs/${id}`);
@@ -30,6 +31,6 @@ export default function Notebook() {
   }, [id]);
 
   return (
-    <NotebookPage notebookId={id} name={name} jobs={jobs} />
+    <NotebookPage notebookId={id} userId={userId} name={name} jobs={jobs} />
   )
 }

@@ -53,15 +53,6 @@ export default function ProjectsPage() {
     const filterNotebooks = notebooks.filter((notebook: { name: string }) => notebook.name.toLowerCase().includes(search.toLowerCase()));
     const router = useRouter();
 
-    useEffect(() => {
-        const checkAuth = async () => {
-            const { data: { session } } = await supabase.auth.getSession();
-            if (!session) {
-                redirect('/auth/signin');
-            }
-        };
-        checkAuth();
-    }, []);
 
     const createNotebook = async (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
