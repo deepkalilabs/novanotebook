@@ -17,7 +17,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { UserRoundIcon } from 'lucide-react';
 
 interface NotebookPageProps {
   notebookId: string;
