@@ -65,6 +65,8 @@ export default function DashboardLayout({
       if (!user) {
         router.push('/auth/signin');
       }
+      //Store locally for dashboard
+      localStorage.setItem('user', JSON.stringify(user));
     };
     
     checkAuth();
