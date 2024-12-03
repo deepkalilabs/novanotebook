@@ -5,7 +5,7 @@ Nova Notebook is a next-generation Jupyter environment that enables data teams t
 ## Prerequisites
 
 - AWS Account with appropriate permissions
-- Supabase Account
+- Supabase Account (Migrating to PG + SQLAlchemy soon)
 - Python 3.8 or higher
 - UV package manager
 - Git
