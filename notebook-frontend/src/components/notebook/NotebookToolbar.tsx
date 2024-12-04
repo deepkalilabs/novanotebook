@@ -26,7 +26,7 @@ export function NotebookToolbar({
   name,
   onHandleAddCell,
   onHandleSave,
-  onHandleLoad,
+  //onHandleLoad,
   onHandleRestartKernel,
   isConnected,
   allCells,
