@@ -60,14 +60,22 @@ def save_or_update_notebook(notebook_id: str, user_id: str, notebook: dict, buck
         }
     
 # TODO: Load the notebook from s3.
-def load_notebook(filename: str, bucket_name = bucket_name):
+def load_notebook(s3_url: str):
     try:
-        response = s3.get_object(Bucket=bucket_name, Key=filename)
+        response = s3.get_object(Bucket=bucket_name, Key=s3_url)
         print("Response:", response)
-        return response.get('Body').read().decode('utf-8')
+        return {
+            'response': response.get('Body').read().decode('utf-8'),
+            'statusCode': 200,
+            'message': 'Notebook loaded successfully'
+        }
     except Exception as e:
         print("Error:", e)
-        return None
+        return {
+            'response': None,
+            'status': 'error',
+            'message': str(e)
+        }
     
 
 # TODO: Delete the notebook from s3.
