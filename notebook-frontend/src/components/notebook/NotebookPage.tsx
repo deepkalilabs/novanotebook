@@ -114,13 +114,6 @@ export default function NotebookPage({ notebookId, userId, name, jobs }: Noteboo
     deployCode(cells)
   }
 
-  console.log("notebookId:", notebookId);
-  console.log("jobs:", jobs?.jobs);
-  //Iterate over jobs
-  jobs?.jobs?.map(job => {
-    console.log("job:", job);
-  });
-
   return (
     <div className="flex min-h-screen">
       <div className="container mx-auto py-8">

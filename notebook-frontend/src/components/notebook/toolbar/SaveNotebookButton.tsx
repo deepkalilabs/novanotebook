@@ -1,11 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Save, Loader2 } from 'lucide-react';
-import { DialogFooter } from '@/components/ui/dialog';
 
 interface SaveNotebookButtonProps {
   onHandleSave: (filename: string) => Promise<unknown>;
@@ -13,57 +10,32 @@ interface SaveNotebookButtonProps {
 
 export function SaveNotebookButton({ onHandleSave }: SaveNotebookButtonProps) {
   const [isSaving, setIsSaving] = useState(false);
-  const [filename, setFilename] = useState('testground.ipynb');
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
+  //Save without trigger dialog
   const handleSave = async () => {
-    if (!filename.trim()) return;
-    
     setIsSaving(true);
-    try {
-      await onHandleSave(filename);
-    } finally {
-      setIsSaving(false);
-      setIsDialogOpen(false);
-    }
+    //Load for 2 seconds to simulate saving
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    await onHandleSave("Filename");
+    setIsSaving(false);
   };
 
   return (
-    <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-      <DialogTrigger asChild>
-        <Button variant="outline" className="gap-2">
-          <Save className="h-4 w-4" />
-          Save
-        </Button>
-      </DialogTrigger>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Save Notebook</DialogTitle>
-          <DialogDescription>
-            Enter a filename for your notebook
-          </DialogDescription>
-        </DialogHeader>
-        <Input
-          value={filename}
-          onChange={(e) => setFilename(e.target.value)}
-          placeholder="notebook.ipynb"
-        />
-        <DialogFooter>
-          <Button 
-            onClick={handleSave}
-            disabled={isSaving}
-          >
-            {isSaving ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Saving...
-              </>
-            ) : (
-              'Save'
-            )}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+    //Add save icon
+    
+    <Button 
+      onClick={handleSave}
+      disabled={isSaving}
+    >
+      <Save className='mr-2 h-4 w-4'/>
+      {isSaving ? (
+        <>
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          Saving...
+      </>
+    ) : (
+        'Save'
+      )}
+    </Button>
   );
 } 
