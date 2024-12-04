@@ -14,6 +14,8 @@ from jupyter_client.kernelspec import KernelSpecManager
 import sys
 from io import StringIO
 from helpers.supabase.job_status import get_all_jobs_for_user, get_job_by_request_id, get_all_jobs_for_notebook
+from helpers.supabase.notebooks import get_notebook_by_id
+from helpers.aws.s3.s3 import save_or_update_notebook, load_notebook
 from helpers.types import OutputExecutionMessage, OutputSaveMessage, OutputLoadMessage, OutputGenerateLambdaMessage, SupabaseJobDetails, SupabaseJobList
 from uuid import UUID
 app = FastAPI()
@@ -98,9 +100,10 @@ async def websocket_endpoint(websocket: WebSocket, session_id: str):
                 await websocket.send_json(response.model_dump())
                 
             elif data['type'] == 'load_notebook':
-                response = await load_notebook(data['filename'])
-                response = OutputLoadMessage(type='notebook_loaded', success=response['status'] == 'success', message=response['message'], cells=response['notebook'])
-                await websocket.send_json(response.model_dump())
+                response = await load_notebook_handler(data['filename'], data['notebook_id'], data['user_id'])
+                print("response", response)
+                output = OutputLoadMessage(type='notebook_loaded', success=response['status'] == 'success', message=response['message'], cells=response['notebook'])
+                await websocket.send_json(output.model_dump())
                 
             elif data['type'] == 'deploy_lambda':
                 # TODO: Better dependency management here.
@@ -206,27 +209,63 @@ async def save_notebook(data: dict):
     try:
         notebook = data.get('cells')
         filename = data.get('filename')
+        user_id = data.get('user_id')
+        notebook_id = data.get('notebook_id')
+
+        if not notebook_id:
+            return {"success": False, "message": "Notebook ID is required."}
+        
+        if not user_id:
+            return {"success": False, "message": "User ID is required."}
 
         if not notebook:
             return {"success": False, "message": "No cells found in the file provided."}
         
+
+        response = save_or_update_notebook(notebook_id, user_id, notebook)
+        print("response", response)
+        
+        # TODO: Save to s3 instead of local file system.
+        """"
         filepath = os.path.join('notebooks', filename)
         with open(filepath, 'w') as f:
             json.dump(notebook, f)
         print(f"Saved notebook to {filepath}")
+        """
         return {"success": True, "message": "Notebook saved successfully."}
     except Exception as e:
         return {"success": False, "message": str(e)}
 
-async def load_notebook(filename: str):
-    filepath = os.path.join('notebooks', filename)
-    if not os.path.exists(filepath):
-        return {"status": "error", "message": "Notebook not found.", "notebook": []}
-    with open(filepath, 'r') as f:
-        notebook = json.load(f)
-    if not notebook:
-        return {"status": "error", "message": "Notebook is empty.", "notebook": []}
-    return {"status": "success", "notebook": notebook, "message": "Notebook loaded successfully."}
+async def load_notebook_handler(filename: str, notebook_id: str, user_id: str):
+    """
+    Load a notebook from S3
+    Returns (success, content or error message)
+    """
+   
+    if not notebook_id:
+        return {"status": "error", "message": "Notebook ID is required.", "notebook": []}
+    
+    if not user_id:
+        return {"status": "error", "message": "User ID is required.", "notebook": []}
+    
+    
+    try:
+        file_path = f"notebooks/{user_id}/{notebook_id}.json"
+        print(f"Attempting to load notebook from S3: {file_path}")  # Debug log
+        
+        response = load_notebook(file_path)
+        print("loaded_notebook", response)
+
+ 
+        
+        if response.get('statusCode') != 200:
+            return {"status": "error", "message": "Notebook not found in S3.", "notebook": []}
+        
+        notebook = json.loads(response.get('response'))
+        return {"status": "success", "notebook": notebook, "message": "Notebook loaded succesfully."}
+    except Exception as e:
+        return {"status": "error", "message": str(e), "notebook": []}
+        
 
 @app.get("/status/jobs/{user_id}")
 async def status_endpoint(user_id: UUID):

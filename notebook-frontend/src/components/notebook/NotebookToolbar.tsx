@@ -6,7 +6,7 @@ import { PlusCircle } from 'lucide-react';
 import { NotebookCell } from '@/app/types';
 import { ShowCodeButton } from './toolbar/ShowCodeButton';
 import { SaveNotebookButton } from './toolbar/SaveNotebookButton';
-import { LoadNotebookButton } from './toolbar/LoadNotebookButton';
+//import { LoadNotebookButton } from './toolbar/LoadNotebookButton';
 import { DeployButton } from './toolbar/DeployButton';
 import { RestartKernelButton } from './toolbar/RestartKernelButton';
 
@@ -26,7 +26,7 @@ export function NotebookToolbar({
   name,
   onHandleAddCell,
   onHandleSave,
-  onHandleLoad,
+  //onHandleLoad,
   onHandleRestartKernel,
   isConnected,
   allCells,
@@ -61,7 +61,6 @@ export function NotebookToolbar({
       </Button>
 
       <SaveNotebookButton onHandleSave={onHandleSave} />
-      <LoadNotebookButton onHandleLoad={onHandleLoad} />
 
       <ShowCodeButton allCells={allCells} />
       

@@ -20,11 +20,12 @@ import {
 
 interface NotebookPageProps {
   notebookId: string;
+  userId: string;
   name: string;
   jobs?: Jobs;
 }
 
-export default function NotebookPage({ notebookId, name, jobs }: NotebookPageProps) {
+export default function NotebookPage({ notebookId, userId, name, jobs }: NotebookPageProps) {
   const { toast } = useToast();
   const { cells, addCell, updateCellCode, updateCellOutput, deleteCell, moveCellUp, moveCellDown, setCells } = useNotebookStore();
   const [ isDeploying, setIsDeploying ] = useState(false);
@@ -87,6 +88,12 @@ export default function NotebookPage({ notebookId, name, jobs }: NotebookPagePro
     }
   }, [isConnected, connectionStatus, toast]);
 
+  useEffect(() => {
+    if (isConnected) {
+      loadNotebook(name, notebookId, userId);
+    }
+  }, [isConnected]);
+
   const handleExecute = async (cellId: string) => {
     const cell = cells.find(c => c.id === cellId);
     if (!cell) return;
@@ -96,23 +103,16 @@ export default function NotebookPage({ notebookId, name, jobs }: NotebookPagePro
   };
 
   const handleSave = async (filename: string) => {
-    saveNotebook(cells, filename);
+    saveNotebook(cells, filename, notebookId, userId);
   };
 
   const handleLoad = async (filename: string) => {
-    loadNotebook(filename);
+    loadNotebook(filename, notebookId, userId);
   };
 
   const handleDeploy = async () => {
     deployCode(cells)
   }
-
-  console.log("notebookId:", notebookId);
-  console.log("jobs:", jobs?.jobs);
-  //Iterate over jobs
-  jobs?.jobs?.map(job => {
-    console.log("job:", job);
-  });
 
   return (
     <div className="flex min-h-screen">

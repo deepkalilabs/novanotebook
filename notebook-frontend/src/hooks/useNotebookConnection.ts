@@ -110,18 +110,22 @@ export function useNotebookConnection({
     onOutput(cellId, 'Loading....');
   };
 
-  const saveNotebook = (cells: NotebookCell[], filename: string) => {
+  const saveNotebook = (cells: NotebookCell[], filename: string, notebook_id: string, user_id: string) => {
     sendMessage(JSON.stringify({
       type: 'save_notebook',
       cells: cells,
-      filename: filename
+      filename: filename,
+      notebook_id: notebook_id,
+      user_id: user_id
     }));
   };
 
-  const loadNotebook = useCallback((filename: string) => {
+  const loadNotebook = useCallback((filename: string, notebook_id: string, user_id: string) => {
     sendMessage(JSON.stringify({
       type: 'load_notebook',
-      filename: filename
+      filename: filename,
+      notebook_id: notebook_id,
+      user_id: user_id
     }));
   }, [sendMessage]);
 
