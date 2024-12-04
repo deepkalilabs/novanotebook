@@ -120,10 +120,12 @@ export function useNotebookConnection({
     }));
   };
 
-  const loadNotebook = useCallback((filename: string) => {
+  const loadNotebook = useCallback((filename: string, notebook_id: string, user_id: string) => {
     sendMessage(JSON.stringify({
       type: 'load_notebook',
-      filename: filename
+      filename: filename,
+      notebook_id: notebook_id,
+      user_id: user_id
     }));
   }, [sendMessage]);
 
