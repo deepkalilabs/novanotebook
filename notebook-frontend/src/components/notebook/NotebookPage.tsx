@@ -101,7 +101,7 @@ export default function NotebookPage({ notebookId, userId, name, jobs }: Noteboo
   };
 
   const handleLoad = async (filename: string) => {
-    loadNotebook(filename);
+    loadNotebook(filename, notebookId, userId);
   };
 
   const handleDeploy = async () => {
