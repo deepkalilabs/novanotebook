@@ -15,7 +15,7 @@ import sys
 from io import StringIO
 from helpers.supabase.job_status import get_all_jobs_for_user, get_job_by_request_id, get_all_jobs_for_notebook
 from helpers.supabase.notebooks import get_notebook_by_id
-from helpers.aws.s3.s3 import save_or_update_notebook
+from helpers.aws.s3.s3 import save_or_update_notebook, load_notebook
 from helpers.types import OutputExecutionMessage, OutputSaveMessage, OutputLoadMessage, OutputGenerateLambdaMessage, SupabaseJobDetails, SupabaseJobList
 from uuid import UUID
 app = FastAPI()
@@ -100,7 +100,7 @@ async def websocket_endpoint(websocket: WebSocket, session_id: str):
                 await websocket.send_json(response.model_dump())
                 
             elif data['type'] == 'load_notebook':
-                response = await load_notebook(data['filename'], data['notebook_id'], data['user_id'])
+                response = await load_notebook_handler(data['filename'], data['notebook_id'], data['user_id'])
                 print("response", response)
                 output = OutputLoadMessage(type='notebook_loaded', success=response['status'] == 'success', message=response['message'], cells=response['notebook'])
                 await websocket.send_json(output.model_dump())
@@ -236,7 +236,12 @@ async def save_notebook(data: dict):
     except Exception as e:
         return {"success": False, "message": str(e)}
 
-async def load_notebook(filename: str, notebook_id: str, user_id: str):
+async def load_notebook_handler(filename: str, notebook_id: str, user_id: str):
+    """
+    Load a notebook from S3
+    Returns (success, content or error message)
+    """
+   
     if not notebook_id:
         return {"status": "error", "message": "Notebook ID is required.", "notebook": []}
     
@@ -245,15 +250,19 @@ async def load_notebook(filename: str, notebook_id: str, user_id: str):
     
     
     try:
-        notebook = get_notebook_by_id(notebook_id, user_id)
-        if not notebook:
-            return {"status": "error", "message": "Notebook not found.", "notebook": []}
+        file_path = f"notebooks/{user_id}/{notebook_id}.json"
+        print(f"Attempting to load notebook from S3: {file_path}")  # Debug log
         
-        s3_url = notebook.get('s3_url')
-        if not s3_url:
+        response = load_notebook(file_path)
+        print("loaded_notebook", response)
+
+ 
+        
+        if response.get('statusCode') != 200:
             return {"status": "error", "message": "Notebook not found in S3.", "notebook": []}
         
-        return {"status": "success", "notebook": notebook, "message": "Notebook loaded successfully."}
+        notebook = json.loads(response.get('response'))
+        return {"status": "success", "notebook": notebook, "message": "Notebook loaded succesfully."}
     except Exception as e:
         return {"status": "error", "message": str(e), "notebook": []}
         

@@ -88,6 +88,12 @@ export default function NotebookPage({ notebookId, userId, name, jobs }: Noteboo
     }
   }, [isConnected, connectionStatus, toast]);
 
+  useEffect(() => {
+    if (isConnected) {
+      loadNotebook(name, notebookId, userId);
+    }
+  }, [isConnected]);
+
   const handleExecute = async (cellId: string) => {
     const cell = cells.find(c => c.id === cellId);
     if (!cell) return;
