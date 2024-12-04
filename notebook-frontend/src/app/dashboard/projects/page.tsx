@@ -1,15 +1,18 @@
 "use client"
 import React, { useEffect, useState } from 'react';
-import { Plus, Search, MessageCircle, ArrowRight, BookTemplate, Trash2 } from 'lucide-react';
+import { Plus, Search, MessageCircle, ArrowRight, BookTemplate, Trash2, Upload } from 'lucide-react';
 import { Card, CardHeader, CardContent, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
 import { useRouter, redirect } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-
+import FileUpload from '@/components/FileUpload';
+import { v4 as uuidv4 } from 'uuid';
+import { NotebookCell } from '@/app/types';
+import { User } from '@supabase/supabase-js';
 
 const templateData = {
     "templates": [
@@ -51,7 +54,9 @@ export default function ProjectsPage() {
     const [dialogOpen, setDialogOpen] = useState(false);
     const [newNotebookName, setNewNotebookName] = useState("");
     const filterNotebooks = notebooks.filter((notebook: { name: string }) => notebook.name.toLowerCase().includes(search.toLowerCase()));
+    const [importNotebookDialogOpen, setImportNotebookDialogOpen] = useState(false);
     const router = useRouter();
+    const [user, setUser] = useState<User | null>(null);  // Add at the top with other state declarations
 
     useEffect(() => {
         const checkAuth = async () => {
@@ -59,46 +64,70 @@ export default function ProjectsPage() {
             if (!session) {
                 redirect('/auth/signin');
             }
+            const { data: { user: currentUser }, error } = await supabase.auth.getUser();
+            if (!error && currentUser) {
+                setUser(currentUser);
+            }
         };
         checkAuth();
     }, []);
 
+    const createNotebookHelper = async (notebookName: string) => {
+      const newNotebook = {
+          user_id: user?.id,
+          name: notebookName,
+          description: "New notebook", // Adding a default description
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+      }
+
+      // Supabase create notebook
+      const { data, error } = await supabase
+          .from('notebooks')
+          .insert(newNotebook)
+          .select()
+          .single();
+
+      if (error) {
+          console.error(error);
+          alert('Failed to create notebook: ' + error.message);
+          return;
+      }
+
+      setNotebooks(prevNotebooks => [...prevNotebooks, data]);
+      setNewNotebookName("");
+      alert('Notebook created successfully');
+    }
+
     const createNotebook = async (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
-        
-        // Get the authenticated user
-        const { data: { user }, error: userError } = await supabase.auth.getUser();
-        
-        if (userError || !user) {
-            alert('You must be logged in to create a notebook');
-            return;
-        }
-
-        const newNotebook = {
-            user_id: user.id,
-            name: newNotebookName,
-            description: "New notebook", // Adding a default description
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-        }
-
-        // Supabase create notebook
-        const { data, error } = await supabase
-            .from('notebooks')
-            .insert(newNotebook)
-            .select()
-            .single();
-
-        if (error) {
-            console.error(error);
-            alert('Failed to create notebook: ' + error.message);
-            return;
-        }
-
-        setNotebooks(prevNotebooks => [...prevNotebooks, data]);
-        setNewNotebookName("");
-        alert('Notebook created successfully');
+        createNotebookHelper(newNotebookName);
         setDialogOpen(false);
+    }
+
+    const importNotebook = async (e: React.MouseEvent<HTMLButtonElement>) => {
+        e.preventDefault();
+        setImportNotebookDialogOpen(true);
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const handleFileSelect = (fileName: string, fileContent: { cells: any[] }) => {
+      const codeCells = fileContent?.cells?.filter((cell) => cell.cell_type === 'code') || [];
+      const cosmicCells: NotebookCell[] = []
+      
+      codeCells.forEach((cell) => {
+        cosmicCells.push({
+          id: uuidv4(),
+          code: cell.source[0],
+          output: cell.outputs[0],
+          executionCount: 0
+        })
+      })
+      // TODO: Save the notebook cells to S3 associated with the notebook name
+      console.log('cosmicCells', cosmicCells);
+      
+      setImportNotebookDialogOpen(false);
+      createNotebookHelper(fileName);
     }
 
     const getAllNotebooks = async () => {
@@ -148,6 +177,7 @@ export default function ProjectsPage() {
               </p>
             </div>
             
+            <div className="flex items-center space-x-2">
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
               <DialogTrigger asChild>
                 <Button>
@@ -169,6 +199,23 @@ export default function ProjectsPage() {
                 </div>
               </DialogContent>
             </Dialog>
+
+            <Dialog open={importNotebookDialogOpen} onOpenChange={setImportNotebookDialogOpen}> 
+                <Button onClick={importNotebook}>
+                  <Upload className="mr-2 h-4 w-4" />
+                  Import Notebook
+                </Button>
+              <DialogContent aria-describedby="import-notebook-description">
+                <DialogHeader>
+                  <DialogTitle>Import Notebook</DialogTitle>
+                  <DialogDescription id="import-notebook-description">
+                    Upload a Jupyter notebook file to import it into your workspace.
+                  </DialogDescription>
+                </DialogHeader>
+                <FileUpload onFileSelect={handleFileSelect} />
+              </DialogContent>
+            </Dialog>
+            </div>
           </div>
   
           {/* Search */}
