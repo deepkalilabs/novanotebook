@@ -9,11 +9,17 @@ export default function Notebook() {
   const params = useParams();
   const searchParams = useSearchParams();
   const [jobs, setJobs] = useState<Jobs>({} as Jobs);
-  
+  const [userId, setUserId] = useState('');
   const id = params.id as string;
   const name = searchParams.get('name') || '';
-  const userId = JSON.parse(localStorage.getItem('user') || '{}').id || '';
-  
+  //Get user id from local storage
+
+  useEffect(() => {
+    // Move localStorage access into useEffect
+    const userId = JSON.parse(localStorage.getItem('user') || '{}').id;
+    setUserId(userId || '');
+  }, []);
+
   useEffect(() => {
     const fetchJobs = async () => {
       const response = await fetch(`/api/get_notebook_jobs/${id}`);
