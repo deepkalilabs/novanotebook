@@ -254,10 +254,8 @@ async def load_notebook_handler(filename: str, notebook_id: str, user_id: str):
         print(f"Attempting to load notebook from S3: {file_path}")  # Debug log
         
         response = load_notebook(file_path)
-        print("loaded_notebook", response)
+        print("loaded_notebook", len(response))
 
- 
-        
         if response.get('statusCode') != 200:
             return {"status": "error", "message": "Notebook not found in S3.", "notebook": []}
         

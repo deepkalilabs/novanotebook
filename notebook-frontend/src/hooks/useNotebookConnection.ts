@@ -8,9 +8,9 @@ import { NotebookCell, OutputDeployMessage } from '@/app/types';
 import { OutputExecutionMessage, OutputSaveMessage, OutputLoadMessage } from '@/app/types';
 import { useToast } from '@/hooks/use-toast';
 interface NotebookConnectionProps {
-  onOutput: (cellId: string, output: string) => void;
-  onNotebookLoaded: (cells: NotebookCell[]) => void;
-  onNotebookSaved: (data: OutputSaveMessage) => void;
+  onOutput?: (cellId: string, output: string) => void;
+  onNotebookLoaded?: (cells: NotebookCell[]) => void;
+  onNotebookSaved?: (data: OutputSaveMessage) => void;
   onError?: (error: string) => void;
   onNotebookDeployed?: (data: OutputDeployMessage) => void;
 }
@@ -77,17 +77,17 @@ export function useNotebookConnection({
         case 'output':
           parsedData = data as OutputExecutionMessage;
           console.log(`Received output: ${parsedData.output}, type: ${typeof parsedData.type}, cellId: ${parsedData.cellId}`);
-          onOutput(parsedData.cellId, parsedData.output);
+          onOutput?.(parsedData.cellId, parsedData.output);
           break;
         case 'notebook_loaded':
           parsedData = data as OutputLoadMessage;
           console.log(`Received notebook_loaded: ${parsedData.type}, success: ${parsedData.success}, message: ${parsedData.message}`);
-          onNotebookLoaded(parsedData.cells);
+          onNotebookLoaded?.(parsedData.cells);
           break;
         case 'notebook_saved':
           parsedData = data as OutputSaveMessage;
           console.log(`Received notebook_saved: ${parsedData.type}, success: ${parsedData.success}, message: ${parsedData.message}`);
-          onNotebookSaved(parsedData);
+          onNotebookSaved?.(parsedData);
           break;
         case 'lambda_generated':
           parsedData = data as OutputDeployMessage;
@@ -107,7 +107,7 @@ export function useNotebookConnection({
       cellId,
       code
     }));
-    onOutput(cellId, 'Loading....');
+    onOutput?.(cellId, 'Loading....');
   };
 
   const saveNotebook = (cells: NotebookCell[], filename: string, notebook_id: string, user_id: string) => {

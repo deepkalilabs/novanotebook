@@ -7,12 +7,14 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
-import { useRouter } from 'next/navigation';
+import { redirect, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import FileUpload from '@/components/FileUpload';
 import { v4 as uuidv4 } from 'uuid';
 import { NotebookCell } from '@/app/types';
 import { User } from '@supabase/supabase-js';
+import { useNotebookConnection } from '@/hooks/useNotebookConnection';
+import { useToast } from '@/hooks/use-toast';
 
 const templateData = {
     "templates": [
@@ -38,7 +40,7 @@ const templateData = {
 }
 
 interface Notebook {
-    id: number;
+    id: string;
     user_id: string;
     session_id: string;
     name: string;
@@ -57,6 +59,26 @@ export default function ProjectsPage() {
     const [importNotebookDialogOpen, setImportNotebookDialogOpen] = useState(false);
     const router = useRouter();
     const [user, setUser] = useState<User | null>(null);  // Add at the top with other state declarations
+    const { toast } = useToast();
+
+    const { saveNotebook } = useNotebookConnection({
+      onNotebookSaved: (data) => {
+        if (data.success) {
+          console.log(`Toasting: Received notebook_saved: ${data.type}, success: ${data.success}, message: ${data.message}`);
+          toast({
+            title: "Notebook imported",
+            description: data.message,
+            variant: "default"
+          });
+        } else {
+          toast({
+            title: "Failed to save",
+            description: data.message,
+            variant: "destructive"
+          });
+        }
+      }
+    })
 
     useEffect(() => {
         const checkAuth = async () => {
@@ -72,7 +94,7 @@ export default function ProjectsPage() {
         checkAuth();
     }, []);
 
-    const createNotebookHelper = async (notebookName: string) => {
+    const createNotebookHelper = async (notebookName: string) : Promise<string> => {
       const newNotebook = {
           user_id: user?.id,
           name: notebookName,
@@ -89,45 +111,51 @@ export default function ProjectsPage() {
           .single();
 
       if (error) {
-          console.error(error);
+          console.error('Error creating notebook:', error);
           alert('Failed to create notebook: ' + error.message);
-          return;
+          return "";
       }
 
       setNotebooks(prevNotebooks => [...prevNotebooks, data]);
       setNewNotebookName("");
-      alert('Notebook created successfully');
+
+      return data.id;
     }
 
     const createNotebook = async (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
-        createNotebookHelper(newNotebookName);
+        const notebookId = await createNotebookHelper(newNotebookName);
+        alert(`Notebook created successfully at ${notebookId}`);
+
         setDialogOpen(false);
     }
 
-    const importNotebook = async (e: React.MouseEvent<HTMLButtonElement>) => {
-        e.preventDefault();
-        setImportNotebookDialogOpen(true);
-    }
-
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const handleFileSelect = (fileName: string, fileContent: { cells: any[] }) => {
+    const handleFileSelect = async (fileName: string, fileContent: { cells: any[] }) => {
       const codeCells = fileContent?.cells?.filter((cell) => cell.cell_type === 'code') || [];
       const cosmicCells: NotebookCell[] = []
       
       codeCells.forEach((cell) => {
         cosmicCells.push({
           id: uuidv4(),
-          code: cell.source[0],
+          code: cell.source.join(''),
           output: cell.outputs[0],
           executionCount: 0
         })
       })
-      // TODO: Save the notebook cells to S3 associated with the notebook name
-      console.log('cosmicCells', cosmicCells);
-      
+
       setImportNotebookDialogOpen(false);
-      createNotebookHelper(fileName);
+      const notebookId = await createNotebookHelper(fileName);
+      alert(`Notebook created successfully at ${notebookId}`);
+
+      // TODO: Save the notebook cells to S3 associated with the notebook name
+      if (user?.id) {
+        saveNotebook(cosmicCells, fileName, notebookId, user?.id)
+      } else {
+        console.error("User should not be null for saving notebook.")
+      }
+      console.log('cosmicCells', cosmicCells);
+      openNotebook(notebookId, fileName);
     }
 
     const getAllNotebooks = async () => {
@@ -139,7 +167,7 @@ export default function ProjectsPage() {
         setNotebooks(data || [] as Notebook[]); // Type assertion with proper interface
     }
 
-    const deleteNotebook = async (notebookId: number) => {
+    const deleteNotebook = async (notebookId: string) => {
         const { error } = await supabase
             .from('notebooks')
             .delete()
@@ -150,10 +178,10 @@ export default function ProjectsPage() {
             return;
         }
         
-        setNotebooks(notebooks.filter((notebook: { id: number }) => notebook.id !== notebookId));
+        setNotebooks(notebooks.filter((notebook: { id: string }) => notebook.id !== notebookId));
     }
 
-    const openNotebook = (notebookId: number, name: string) => {
+    const openNotebook = (notebookId: string, name: string) => {
         router.push(`/dashboard/notebook/${notebookId}?name=${name}`);
     }
 
@@ -201,7 +229,7 @@ export default function ProjectsPage() {
             </Dialog>
 
             <Dialog open={importNotebookDialogOpen} onOpenChange={setImportNotebookDialogOpen}> 
-                <Button onClick={importNotebook}>
+                <Button onClick={() => setImportNotebookDialogOpen(true)}>
                   <Upload className="mr-2 h-4 w-4" />
                   Import Notebook
                 </Button>
