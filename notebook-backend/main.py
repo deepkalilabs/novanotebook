@@ -95,13 +95,13 @@ async def websocket_endpoint(websocket: WebSocket, session_id: str):
             
             elif data['type'] == 'save_notebook':
                 response = await save_notebook(data)
-                print("response", response)
+                # print("response", response)
                 response = OutputSaveMessage(type='notebook_saved', success=response['success'], message=response['message'])
                 await websocket.send_json(response.model_dump())
                 
             elif data['type'] == 'load_notebook':
                 response = await load_notebook_handler(data['filename'], data['notebook_id'], data['user_id'])
-                print("response", response)
+                # print("response", response)
                 output = OutputLoadMessage(type='notebook_loaded', success=response['status'] == 'success', message=response['message'], cells=response['notebook'])
                 await websocket.send_json(output.model_dump())
                 
@@ -223,7 +223,7 @@ async def save_notebook(data: dict):
         
 
         response = save_or_update_notebook(notebook_id, user_id, notebook)
-        print("response", response)
+        # print("response", response)
         
         # TODO: Save to s3 instead of local file system.
         """"
@@ -254,8 +254,7 @@ async def load_notebook_handler(filename: str, notebook_id: str, user_id: str):
         print(f"Attempting to load notebook from S3: {file_path}")  # Debug log
         
         response = load_notebook(file_path)
-        print("loaded_notebook", response)
-
+        print("loaded_notebook", len(response))
  
         
         if response.get('statusCode') != 200:
