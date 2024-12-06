@@ -21,20 +21,22 @@ export default function Notebook() {
   }, []);
 
   useEffect(() => {
-    const fetchJobs = async () => {
-      const response = await fetch(`/api/get_notebook_jobs/${id}`);
-      const jobsData = await response.json();
-      
-      if (jobsData.statusCode !== 200) {
-        setJobs({} as Jobs);
+    if (id) {
+      const fetchJobs = async () => {
+        const response = await fetch(`/api/get_notebook_jobs/${id}`);
+        const jobsData = await response.json();
+        
+        if (jobsData.statusCode !== 200) {
+          setJobs({} as Jobs);
       } else {
-        console.log('jobsData:', JSON.parse(jobsData.body));
-        setJobs(JSON.parse(jobsData.body));
-      }
-    };
+          console.log('jobsData:', JSON.parse(jobsData.body));
+          setJobs(JSON.parse(jobsData.body));
+        }
+      };
 
-    fetchJobs();
-  }, [id]);
+      fetchJobs();
+    }
+  }, []);
 
   return (
     <NotebookPage notebookId={id} userId={userId} name={name} jobs={jobs} />
