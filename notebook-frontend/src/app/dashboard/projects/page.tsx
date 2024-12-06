@@ -158,8 +158,8 @@ export default function ProjectsPage() {
       openNotebook(notebookId, fileName);
     }
 
-    const getAllNotebooks = async () => {
-        const { data, error } = await supabase.from('notebooks').select();
+    const getAllNotebooksByUser = async (userId: string) => {
+        const { data, error } = await supabase.from('notebooks').select().eq('user_id', userId);
         if (error) {
             alert('Failed to fetch notebooks: ' + error.message);
             return;
@@ -190,8 +190,10 @@ export default function ProjectsPage() {
     }, [newNotebookName]);
 
     useEffect(() => {
-        getAllNotebooks();
-    }, []);
+        if (user?.id) {
+            getAllNotebooksByUser(user?.id);
+        }
+    }, [user]);
 
     return (
         <div className="flex flex-col h-screen bg-background">
