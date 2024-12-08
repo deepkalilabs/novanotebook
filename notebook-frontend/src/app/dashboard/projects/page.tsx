@@ -1,15 +1,20 @@
 "use client"
 import React, { useEffect, useState } from 'react';
-import { Plus, Search, MessageCircle, ArrowRight, BookTemplate, Trash2 } from 'lucide-react';
+import { Plus, Search, MessageCircle, ArrowRight, BookTemplate, Trash2, Upload } from 'lucide-react';
 import { Card, CardHeader, CardContent, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
-import { useRouter } from 'next/navigation';
+import { redirect, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-
+import FileUpload from '@/components/FileUpload';
+import { v4 as uuidv4 } from 'uuid';
+import { NotebookCell } from '@/app/types';
+import { User } from '@supabase/supabase-js';
+import { useNotebookConnection } from '@/hooks/useNotebookConnection';
+import { useToast } from '@/hooks/use-toast';
 
 const templateData = {
     "templates": [
@@ -35,7 +40,7 @@ const templateData = {
 }
 
 interface Notebook {
-    id: number;
+    id: string;
     user_id: string;
     session_id: string;
     name: string;
@@ -51,49 +56,110 @@ export default function ProjectsPage() {
     const [dialogOpen, setDialogOpen] = useState(false);
     const [newNotebookName, setNewNotebookName] = useState("");
     const filterNotebooks = notebooks.filter((notebook: { name: string }) => notebook.name.toLowerCase().includes(search.toLowerCase()));
+    const [importNotebookDialogOpen, setImportNotebookDialogOpen] = useState(false);
     const router = useRouter();
+    const [user, setUser] = useState<User | null>(null);  // Add at the top with other state declarations
+    const { toast } = useToast();
 
+    const { saveNotebook } = useNotebookConnection({
+      onNotebookSaved: (data) => {
+        if (data.success) {
+          console.log(`Toasting: Received notebook_saved: ${data.type}, success: ${data.success}, message: ${data.message}`);
+          toast({
+            title: "Notebook imported",
+            description: data.message,
+            variant: "default"
+          });
+        } else {
+          toast({
+            title: "Failed to save",
+            description: data.message,
+            variant: "destructive"
+          });
+        }
+      }
+    })
+
+    useEffect(() => {
+        const checkAuth = async () => {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) {
+                redirect('/auth/signin');
+            }
+            const { data: { user: currentUser }, error } = await supabase.auth.getUser();
+            if (!error && currentUser) {
+                setUser(currentUser);
+            }
+        };
+        checkAuth();
+    }, []);
+
+    const createNotebookHelper = async (notebookName: string) : Promise<string> => {
+      const newNotebook = {
+          user_id: user?.id,
+          name: notebookName,
+          description: "New notebook", // Adding a default description
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+      }
+
+      // Supabase create notebook
+      const { data, error } = await supabase
+          .from('notebooks')
+          .insert(newNotebook)
+          .select()
+          .single();
+
+      if (error) {
+          console.error('Error creating notebook:', error);
+          alert('Failed to create notebook: ' + error.message);
+          return "";
+      }
+
+      setNotebooks(prevNotebooks => [...prevNotebooks, data]);
+      setNewNotebookName("");
+
+      return data.id;
+    }
 
     const createNotebook = async (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
-        
-        // Get the authenticated user
-        const { data: { user }, error: userError } = await supabase.auth.getUser();
-        
-        if (userError || !user) {
-            alert('You must be logged in to create a notebook');
-            return;
-        }
+        const notebookId = await createNotebookHelper(newNotebookName);
+        alert(`Notebook created successfully at ${notebookId}`);
 
-        const newNotebook = {
-            user_id: user.id,
-            name: newNotebookName,
-            description: "New notebook", // Adding a default description
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-        }
-
-        // Supabase create notebook
-        const { data, error } = await supabase
-            .from('notebooks')
-            .insert(newNotebook)
-            .select()
-            .single();
-
-        if (error) {
-            console.error(error);
-            alert('Failed to create notebook: ' + error.message);
-            return;
-        }
-
-        setNotebooks(prevNotebooks => [...prevNotebooks, data]);
-        setNewNotebookName("");
-        alert('Notebook created successfully');
         setDialogOpen(false);
     }
 
-    const getAllNotebooks = async () => {
-        const { data, error } = await supabase.from('notebooks').select();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const handleFileSelect = async (fileName: string, fileContent: { cells: any[] }) => {
+      const codeCells = fileContent?.cells?.filter((cell) => cell.cell_type === 'code') || [];
+      const cosmicCells: NotebookCell[] = []
+      
+      codeCells.forEach((cell) => {
+        cosmicCells.push({
+          id: uuidv4(),
+          code: cell.source.join(''),
+          output: cell.outputs.join(''),
+          executionCount: 0
+        })
+      })
+
+      setImportNotebookDialogOpen(false);
+      const notebookId = await createNotebookHelper(fileName);
+      alert(`Notebook created successfully at ${notebookId}`);
+
+      // TODO: Save the notebook cells to S3 associated with the notebook name
+      if (user?.id) {
+        saveNotebook(cosmicCells, fileName, notebookId, user?.id)
+      } else {
+        console.error("User should not be null for saving notebook.")
+      }
+      console.log('cosmicCells', cosmicCells);
+      openNotebook(notebookId, fileName);
+    }
+
+    const getAllNotebooksByUser = async (userId: string) => {
+        const { data, error } = await supabase.from('notebooks').select().eq('user_id', userId);
         if (error) {
             alert('Failed to fetch notebooks: ' + error.message);
             return;
@@ -101,7 +167,7 @@ export default function ProjectsPage() {
         setNotebooks(data || [] as Notebook[]); // Type assertion with proper interface
     }
 
-    const deleteNotebook = async (notebookId: number) => {
+    const deleteNotebook = async (notebookId: string) => {
         const { error } = await supabase
             .from('notebooks')
             .delete()
@@ -112,10 +178,10 @@ export default function ProjectsPage() {
             return;
         }
         
-        setNotebooks(notebooks.filter((notebook: { id: number }) => notebook.id !== notebookId));
+        setNotebooks(notebooks.filter((notebook: { id: string }) => notebook.id !== notebookId));
     }
 
-    const openNotebook = (notebookId: number, name: string) => {
+    const openNotebook = (notebookId: string, name: string) => {
         router.push(`/dashboard/notebook/${notebookId}?name=${name}`);
     }
 
@@ -124,8 +190,10 @@ export default function ProjectsPage() {
     }, [newNotebookName]);
 
     useEffect(() => {
-        getAllNotebooks();
-    }, []);
+        if (user?.id) {
+            getAllNotebooksByUser(user?.id);
+        }
+    }, [user]);
 
     return (
         <div className="flex flex-col h-screen bg-background">
@@ -139,6 +207,7 @@ export default function ProjectsPage() {
               </p>
             </div>
             
+            <div className="flex items-center space-x-2">
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
               <DialogTrigger asChild>
                 <Button>
@@ -160,6 +229,23 @@ export default function ProjectsPage() {
                 </div>
               </DialogContent>
             </Dialog>
+
+            <Dialog open={importNotebookDialogOpen} onOpenChange={setImportNotebookDialogOpen}> 
+                <Button onClick={() => setImportNotebookDialogOpen(true)}>
+                  <Upload className="mr-2 h-4 w-4" />
+                  Import Notebook
+                </Button>
+              <DialogContent aria-describedby="import-notebook-description">
+                <DialogHeader>
+                  <DialogTitle>Import Notebook</DialogTitle>
+                  <DialogDescription id="import-notebook-description">
+                    Upload a Jupyter notebook file to import it into your workspace.
+                  </DialogDescription>
+                </DialogHeader>
+                <FileUpload onFileSelect={handleFileSelect} />
+              </DialogContent>
+            </Dialog>
+            </div>
           </div>
   
           {/* Search */}

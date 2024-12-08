@@ -63,7 +63,8 @@ def save_or_update_notebook(notebook_id: str, user_id: str, notebook: dict, buck
 def load_notebook(s3_url: str):
     try:
         response = s3.get_object(Bucket=bucket_name, Key=s3_url)
-        print("Response:", response)
+        print("Response:", len(response))
+        # logger.info(f"Response: {response}")
         return {
             'response': response.get('Body').read().decode('utf-8'),
             'statusCode': 200,
