@@ -16,7 +16,6 @@ supabase: Client = create_client(
     supabase_key=os.environ.get('SUPABASE_SERVICE_KEY')
 )
 
-
 def get_all_jobs_for_user(user_id: UUID):
     try:
         response = supabase.table('lambda_jobs') \
