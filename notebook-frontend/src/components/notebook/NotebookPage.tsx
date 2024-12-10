@@ -10,7 +10,7 @@ import { NotebookToolbar } from '@/components/notebook/NotebookToolbar';
 import { NotebookCell } from '@/components/notebook/NotebookCell';
 import { Jobs, OutputDeployMessage } from '@/app/types';
 import DeploymentDialog from '@/components/notebook/NotebookDeploy';
-import { DataSourcesTab } from '@/components/notebook/datasources/DataSourcesTab';
+import { SourcesTab } from '@/components/notebook/data/Sources';
 import { JobsPage } from '@/components/notebook/jobs/JobsPage';
 interface NotebookPageProps {
   notebookId: string;
@@ -157,7 +157,7 @@ export default function NotebookPage({ notebookId, userId, name, jobs }: Noteboo
             <br/>
 
             <div className="space-y-6">
-              <DataSourcesTab globalSources={[]} />
+              <SourcesTab globalSources={[]} />
             </div>
 
             <div className="space-y-6">

@@ -1,10 +1,9 @@
-import { TabsContent } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Database, Plus } from "lucide-react";
+import { Database } from "lucide-react";
+import { SourcesSheet } from "./SourcesSheet";
 
-interface DataSourcesTabProps {
+interface SourcesTabProps {
     globalSources: {
         name: string;
         type: string;
@@ -30,7 +29,7 @@ const globalSources = [
     }
   ];
 
-export function DataSourcesTab({ globalSources }: DataSourcesTabProps) {
+export function SourcesTab({ globalSources }: SourcesTabProps) {
     const g = [
         {
           name: 'PostHog Production',
@@ -49,27 +48,22 @@ export function DataSourcesTab({ globalSources }: DataSourcesTabProps) {
         }
       ];
 
-
-
   return (
     <div className="flex items-center space-x-4">
         <Card className="mb-4">
-        <CardContent className="py-3">
-            <div className="flex items-center space-x-4">
-            <span className="text-sm text-muted-foreground">Global Data Sources:</span>
-                {g.map(source => (
-                    <Badge key={source.name} variant="secondary">
-                    <Database className="w-3 h-3 mr-1" />
-                    {source.name}
-                    </Badge>
-                ))}
-                <Button variant="outline" size="sm">
-                        <Plus className="w-4 h-4 mr-2" />
-                        Add Source
-                    </Button>
+            <CardContent className="py-3">
+                <div className="flex items-center space-x-4">
+                    <span className="text-sm text-muted-foreground">Global Data Sources:</span>
+                    {g.map(source => (
+                        <Badge key={source.name} variant="secondary">
+                            <Database className="w-3 h-3 mr-1" />
+                            {source.name}
+                        </Badge>
+                    ))}
+                    <SourcesSheet />
                 </div>
             </CardContent>
-            </Card>
+        </Card>
     </div>
   );
 }
