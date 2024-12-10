@@ -50,7 +50,8 @@ async def websocket_endpoint(websocket: WebSocket, session_id: str):
         user_id = 4
         env_name = f"venv_kernel_{user_id}"
         relevant_env_path = get_relevant_env_path(env_name)
-        
+
+        print(f"relevant_env_path: {relevant_env_path}")
         if not relevant_env_path:
             sh.conda(
                 "create", "-n", env_name, "python=3.9", "ipykernel",
@@ -59,6 +60,7 @@ async def websocket_endpoint(websocket: WebSocket, session_id: str):
             relevant_env_path = get_relevant_env_path(env_name)
             
         relevant_env_path_python = os.path.join(relevant_env_path, "bin", "python3")
+        print(f"relevant_env_path_python: {relevant_env_path_python}")
         
         try:
             sh.Command(relevant_env_path_python)(
@@ -163,6 +165,12 @@ async def execute_code(kernel_client, relevant_env_path: str, code: str) -> str:
                 *base_magic_command,
                 _out=output_buffer, _err=error_buffer
             )
+            print(f"magic_command: {magic_command}")
+            print(f"base_magic_command: {base_magic_command}")
+            print(f"relevant_env_path: {relevant_env_path}")
+            print(f"output_buffer: {output_buffer.getvalue()}")
+            print(f"error_buffer: {error_buffer.getvalue()}")
+            print(f"result: {result}")
             return output_buffer.getvalue()
         
     except Exception as e:
