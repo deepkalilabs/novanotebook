@@ -9,10 +9,18 @@ from lambda_generator.helpers.ecr_manager import ECRManager
 import json
 import uuid
 import logging
+from supabase import create_client, Client
+from datetime import datetime
 
 # Configure logging
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
+
+
+supabase: Client = create_client(
+    supabase_url=os.environ.get('SUPABASE_URL'),
+    supabase_key=os.environ.get('SUPABASE_SERVICE_KEY')
+)
 
 class LambdaGenerator:
     # TODO: Dynamically generate IAM roles.
@@ -55,6 +63,7 @@ class LambdaGenerator:
         self.submit_endpoint_id = ''
         self.status_endpoint_id = ''
         self.result_endpoint_id = ''
+        self.submit_endpoint = ''
         
         if os.path.exists(self.base_folder_path):
             shutil.rmtree(self.base_folder_path)
@@ -288,11 +297,11 @@ class LambdaGenerator:
                 stageName='prod'
             )
             
-            submit_endpoint = f'https://{self.api_id}.execute-api.{self.region}.amazonaws.com/prod/submit'
+            self.submit_endpoint = f'https://{self.api_id}.execute-api.{self.region}.amazonaws.com/prod/submit'
 
-            logger.info(f"API endpoints created successfully: submit={submit_endpoint}")
+            logger.info(f"API endpoints created successfully: submit={self.submit_endpoint}")
             
-            return True, submit_endpoint
+            return True, self.submit_endpoint
             
         except Exception as e:
             logger.error(f"Error creating API endpoint: {str(e)}")
@@ -301,6 +310,15 @@ class LambdaGenerator:
             # {
             #   "csv_file_uri": "s3://llm-data-viz-agentkali/data_uploads/00328009-93c5-4816-93f5-b33ce9aea716.csv"
             # }
+            
+    def store_endpoint_supabase(self):
+        supabase.table('notebook_endpoints').insert({
+            'notebook_id': '',
+            'user_id': '',
+            'created_at': datetime.now().isoformat(),
+            'updated_at': datetime.now().isoformat(),
+            'endpoint': self.submit_endpoint
+        })
         
 
 # if __name__ == "__main__":
