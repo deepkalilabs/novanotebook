@@ -1,5 +1,5 @@
 # posthog_adapter.py
-from data.sources.posthog_client import PostHogClient
+from connectors.sources.posthog_client import PostHogClient
 
 class PostHogAdapter:
     def __init__(self, api_key: str, base_url: str):

@@ -4,7 +4,7 @@
 import { useCallback, useEffect, useRef } from 'react';
 import useWebSocket, { ReadyState } from 'react-use-websocket';
 import { v4 as uuidv4 } from 'uuid';
-import { NotebookCell, OutputDeployMessage } from '@/app/types';
+import { NotebookCell, OutputDeployMessage, OutputPosthogSetupMessage } from '@/app/types';
 import { OutputExecutionMessage, OutputSaveMessage, OutputLoadMessage } from '@/app/types';
 import { useToast } from '@/hooks/use-toast';
 interface NotebookConnectionProps {
@@ -13,6 +13,7 @@ interface NotebookConnectionProps {
   onNotebookSaved?: (data: OutputSaveMessage) => void;
   onError?: (error: string) => void;
   onNotebookDeployed?: (data: OutputDeployMessage) => void;
+  onPosthogSetup?: (data: OutputPosthogSetupMessage) => void;
 }
 
 export function useNotebookConnection({
@@ -20,10 +21,14 @@ export function useNotebookConnection({
   onNotebookLoaded,
   onNotebookSaved,
   onNotebookDeployed,
+  onPosthogSetup,
   onError
 }: NotebookConnectionProps) {
   const { toast } = useToast();
   const sessionId = useRef(uuidv4()).current;
+  //Set sessionId in local storage
+  localStorage.setItem('sessionId', sessionId);
+
   const setupSocketUrl = useCallback(() => {
 
     const socketBaseURL = process.env.NODE_ENV === 'development' ? '0.0.0.0' : process.env.NEXT_PUBLIC_AWS_EC2_IP;
@@ -94,6 +99,11 @@ export function useNotebookConnection({
           console.log(`Received lambda_generated: ${parsedData.type}, success: ${parsedData.success}, message: ${parsedData.message}`);
           onNotebookDeployed?.(parsedData);
           break;
+        case 'posthog_setup':
+          parsedData = data as OutputPosthogSetupMessage;
+          console.log(`Received posthog_setup: ${parsedData.type}, success: ${parsedData.success}, message: ${parsedData.message}`);
+          onPosthogSetup?.(parsedData);
+          break;
         case 'error':
           onError?.(data.message);
           break;
@@ -146,12 +156,21 @@ export function useNotebookConnection({
     }));
   }, [sendMessage]);
 
+  const posthogSetup = useCallback((apiKey: string, hostUrl: string) => {
+    sendMessage(JSON.stringify({
+      type: 'posthog_setup',
+      api_key: apiKey,
+      host_url: hostUrl
+    }));
+  }, [sendMessage]);
+
   return {
     executeCode,
     saveNotebook,
     loadNotebook,
     restartKernel,
     deployCode,
+    posthogSetup,
     isConnected: readyState === ReadyState.OPEN,
     connectionStatus: {
       [ReadyState.CONNECTING]: 'Connecting',

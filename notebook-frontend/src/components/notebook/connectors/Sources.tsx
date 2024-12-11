@@ -9,6 +9,7 @@ interface SourcesTabProps {
         type: string;
         status: string;
     }[];
+    posthogSetup: (apiKey: string, hostUrl: string) => void;
 }   
 
 const globalSources = [
@@ -29,7 +30,7 @@ const globalSources = [
     }
   ];
 
-export function SourcesTab({ globalSources }: SourcesTabProps) {
+export function SourcesTab({ globalSources, posthogSetup }: SourcesTabProps) {
     const g = [
         {
           name: 'PostHog Production',
@@ -60,7 +61,7 @@ export function SourcesTab({ globalSources }: SourcesTabProps) {
                             {source.name}
                         </Badge>
                     ))}
-                    <SourcesSheet />
+                    <SourcesSheet posthogSetup={posthogSetup} />
                 </div>
             </CardContent>
         </Card>

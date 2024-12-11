@@ -5,10 +5,24 @@
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { useState } from 'react'
+import { Loader2 } from 'lucide-react'
 
-export default function FormsPosthog() {
+interface FormsPosthogProps {
+  posthogSetup: (apiKey: string, hostUrl: string) => void;
+}
+
+export default function FormsPosthog({ posthogSetup }: FormsPosthogProps) {
   const [apiKey, setApiKey] = useState('')
   const [hostUrl, setHostUrl] = useState('https://app.posthog.com')
+  const [isConnecting, setIsConnecting] = useState(false)
+
+  const handleConnect = async (e: React.FormEvent<HTMLButtonElement>) => {
+    console.log('Connecting to PostHog...')
+    e.preventDefault()
+    setIsConnecting(true)
+    posthogSetup(apiKey, hostUrl)
+    setIsConnecting(false)
+  }
 
   return (  
     <div className="space-y-6">
@@ -48,8 +62,8 @@ export default function FormsPosthog() {
 
       <div className="flex justify-end space-x-2">
         <Button variant="outline">Cancel</Button>
-        <Button>
-          <span className="mr-2">Connect</span>
+        <Button onClick={handleConnect} disabled={isConnecting}>
+          {isConnecting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <span className="mr-2">Connect</span>}
         </Button>
       </div>
     </div>

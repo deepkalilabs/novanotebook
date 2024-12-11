@@ -73,3 +73,9 @@ export interface FileUploadProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onFileSelect: (fileName: string, content: { cells: any[] }) => void;
 }
+
+export interface OutputPosthogSetupMessage {
+    type: string;
+    success: boolean;
+    message: string;
+}

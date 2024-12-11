@@ -16,7 +16,7 @@ from io import StringIO
 from helpers.supabase.job_status import get_all_jobs_for_user, get_job_by_request_id, get_all_jobs_for_notebook
 from helpers.supabase.notebooks import get_notebook_by_id
 from helpers.aws.s3.s3 import save_or_update_notebook, load_notebook
-from helpers.types import OutputExecutionMessage, OutputSaveMessage, OutputLoadMessage, OutputGenerateLambdaMessage, SupabaseJobDetails, SupabaseJobList
+from helpers.types import OutputExecutionMessage, OutputSaveMessage, OutputLoadMessage, OutputGenerateLambdaMessage, OutputPosthogSetupMessage
 from uuid import UUID
 app = FastAPI()
 
@@ -106,6 +106,38 @@ async def websocket_endpoint(websocket: WebSocket, session_id: str):
                 # print("response", response)
                 output = OutputLoadMessage(type='notebook_loaded', success=response['status'] == 'success', message=response['message'], cells=response['notebook'])
                 await websocket.send_json(output.model_dump())
+
+            elif data['type'] == 'posthog_setup':
+                print("Setting up PostHog...")
+                
+                setup_code = f"""
+from connectors.adapters.posthog_adapter import PostHogAdapter
+from IPython.display import display, HTML
+
+# Initialize PostHog adapter
+posthog_adapter = PostHogAdapter("{data['api_key']}", "{data['host_url']}")
+
+# Make it available in the notebook namespace
+get_ipython().user_ns['posthog_adapter'] = posthog_adapter
+
+# Display success message
+display(HTML('''
+<div style="padding: 10px; background-color: #e6ffe6; border-radius: 5px;">
+    <h4>✅ PostHog Connected</h4>
+    <p>The PostHog adapter is now available as <code>posthog_adapter</code></p>
+    <p>Example usage:</p>
+    <ul>
+        <li><code>await posthog_adapter.get_user_engagement(user_id, start_date, end_date)</code></li>
+        <li><code>await posthog_adapter.get_churn_risk_score(user_id, start_date, end_date)</code></li>
+    </ul>
+</div>
+'''))
+"""
+
+                output = await execute_code(kernel_client=kc, relevant_env_path=relevant_env_path, code=setup_code)
+                
+                response = OutputPosthogSetupMessage(type='posthog_setup', success=True, message="PostHog setup complete")
+                await websocket.send_json(response.model_dump())
                 
             elif data['type'] == 'deploy_lambda':
                 # TODO: Better dependency management here.
@@ -287,6 +319,7 @@ async def status_endpoint(user_id: int, request_id: str):
 async def status_endpoint(notebook_id: UUID):
     return get_all_jobs_for_notebook(notebook_id)
 
+ 
 if __name__ == "__main__":
     if not os.path.exists('notebooks'):
         os.makedirs('notebooks')

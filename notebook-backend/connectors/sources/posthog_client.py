@@ -2,7 +2,7 @@
 # Purpose: Interacts with the PostHog API to fetch data.
 import httpx
 from typing import List
-from data.models.posthog_models import Group, User, Event
+from connectors.models.posthog_models import Group, User, Event
 
 class PostHogClient:
     def __init__(self, api_key: str, base_url: str):

@@ -10,7 +10,7 @@ import { NotebookToolbar } from '@/components/notebook/NotebookToolbar';
 import { NotebookCell } from '@/components/notebook/NotebookCell';
 import { Jobs, OutputDeployMessage } from '@/app/types';
 import DeploymentDialog from '@/components/notebook/NotebookDeploy';
-import { SourcesTab } from '@/components/notebook/data/Sources';
+import { SourcesTab } from '@/components/notebook/connectors/Sources';
 import { JobsPage } from '@/components/notebook/jobs/JobsPage';
 interface NotebookPageProps {
   notebookId: string;
@@ -31,7 +31,8 @@ export default function NotebookPage({ notebookId, userId, name, jobs }: Noteboo
     restartKernel,
     deployCode,
     isConnected,
-    connectionStatus
+    connectionStatus,
+    posthogSetup
   } = useNotebookConnection({
     onOutput: updateCellOutput,
     onNotebookLoaded: (cells) => {
@@ -157,7 +158,7 @@ export default function NotebookPage({ notebookId, userId, name, jobs }: Noteboo
             <br/>
 
             <div className="space-y-6">
-              <SourcesTab globalSources={[]} />
+              <SourcesTab globalSources={[]} posthogSetup={posthogSetup} />
             </div>
 
             <div className="space-y-6">

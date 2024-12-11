@@ -3,8 +3,13 @@ import React from 'react';
 import { Button } from "@/components/ui/button"
 import { MessageSquare, Code } from 'lucide-react';
 import Link from 'next/link';
+import posthog from 'posthog-js';
 
 export default function Home() {
+  posthog.capture('page_view', {
+    path: '/',
+    user_id: posthog.get_distinct_id(),
+  });
   return (
     <div className="min-h-screen">
       <div className="container mx-auto px-4 py-20">
