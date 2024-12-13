@@ -1,4 +1,14 @@
 # Model Schemas
-This directory contains data schemas for the various sources of data that the notebook backend can query.
+Purpose: Contains data validation and serialization logic, especially using libraries like Pydantic.
+
+
+## Subfolders:
+- **posthog**: Contains pydantic models for PostHog.
+- **aws**: Contains pydantic models for AWS.
+
+
+## Example of subfolder:
+`models/posthog/models.py`
+
 
 

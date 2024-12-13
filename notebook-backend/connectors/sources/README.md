@@ -1,16 +1,14 @@
 # Data Sources
-Purpose: Houses code that interacts directly with data sources.
-
+Purpose: Handles direct data access and storage. Such as querying data from a database, or saving data to a database.
+Doesn't contain any logic for data transformation.
 Example 1:
-`posthog_client.py` would include functions to authenticate, query data, and handle API rate limits for PostHog.
-
-Example 2:
-`openai_client.py` would include functions to authenticate, query data, and handle API rate limits for OpenAI.
+`posthog_client.py` would include functions to query data, and update data in PostHog.
 
 Example 3:
-`snowflake_client.py` would include functions to authenticate, query data, and handle API rate limits for Snowflake.
+`snowflake_client.py` would include functions to query data, and update data in Snowflake.
 
-# Data Source Types
+# Storage
+- S3 
 
 ## Product Analytics
 - PostHog

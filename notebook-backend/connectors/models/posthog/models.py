@@ -1,6 +1,12 @@
 from typing import List, Optional
 from pydantic import BaseModel
 
+class Credentials(BaseModel):
+    api_key: str
+    base_url: str
+    headers: dict
+    type: str
+
 class Event(BaseModel):
     id: str
     event: str
