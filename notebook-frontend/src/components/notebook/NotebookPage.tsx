@@ -74,6 +74,11 @@ export default function NotebookPage({ notebookId, userId, name, jobs }: Noteboo
         description: error,
         variant: "destructive"
       });
+    },
+    notebookDetails: {
+      notebookId: notebookId,
+      userId: userId,
+      name: name
     }
   });
 
@@ -111,7 +116,7 @@ export default function NotebookPage({ notebookId, userId, name, jobs }: Noteboo
   };
 
   const handleDeploy = async () => {
-    deployCode(cells)
+    deployCode(cells, userId, name, notebookId)
   }
 
   return (

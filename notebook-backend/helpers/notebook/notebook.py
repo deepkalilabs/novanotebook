@@ -7,9 +7,9 @@ from jupyter_client.kernelspec import KernelSpecManager
 from jupyter_client import KernelManager
 from helpers.aws.s3 import s3
 
-class NotebookHelper():
-    def __init__(self, user_id: int):
-        self.env_name = f"venv_kernel_{user_id}"
+class NotebookUtils():
+    def __init__(self, notebook_id: str):
+        self.env_name = f"venv_kernel_{notebook_id}"
         self.relevant_env_path = ''
         self.kernel_client = None
         self.kernel_manager = None
@@ -20,7 +20,6 @@ class NotebookHelper():
             relevant_env_path = curr_envs.get(env_name, None)
             return relevant_env_path
 
-        
         if not self.relevant_env_path:
             sh.conda(
                 "create", "-n", self.env_name, "python=3.9", "ipykernel",
@@ -160,7 +159,6 @@ class NotebookHelper():
             response = s3.load_notebook(file_path)
             print("loaded_notebook", len(response))
     
-            
             if response.get('statusCode') != 200:
                 return {"status": "error", "message": "Notebook not found in S3.", "notebook": []}
             

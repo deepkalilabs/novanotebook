@@ -7,12 +7,19 @@ import { v4 as uuidv4 } from 'uuid';
 import { NotebookCell, OutputDeployMessage } from '@/app/types';
 import { OutputExecutionMessage, OutputSaveMessage, OutputLoadMessage } from '@/app/types';
 import { useToast } from '@/hooks/use-toast';
+interface NotebookDetails {
+  notebookId: string
+  userId: string
+  name: string 
+}
+
 interface NotebookConnectionProps {
   onOutput?: (cellId: string, output: string) => void;
   onNotebookLoaded?: (cells: NotebookCell[]) => void;
   onNotebookSaved?: (data: OutputSaveMessage) => void;
   onError?: (error: string) => void;
   onNotebookDeployed?: (data: OutputDeployMessage) => void;
+  notebookDetails?: NotebookDetails;
 }
 
 export function useNotebookConnection({
@@ -20,10 +27,16 @@ export function useNotebookConnection({
   onNotebookLoaded,
   onNotebookSaved,
   onNotebookDeployed,
-  onError
+  onError,
+  notebookDetails
 }: NotebookConnectionProps) {
   const { toast } = useToast();
   const sessionId = useRef(uuidv4()).current;
+  const notebookId = notebookDetails?.notebookId
+  const userId = notebookDetails?.notebookId
+  const notebookName = notebookDetails?.name
+
+  console.log("details", notebookId, userId, notebookName)
   const setupSocketUrl = useCallback(() => {
 
     const socketBaseURL = process.env.NODE_ENV === 'development' ? '0.0.0.0' : process.env.NEXT_PUBLIC_AWS_EC2_IP;
@@ -31,10 +44,10 @@ export function useNotebookConnection({
     let socketUrl = '';
 
     if (process.env.NODE_ENV === 'development') {
-      socketUrl = `ws://0.0.0.0:8000/ws/${sessionId}`;
+      socketUrl = `ws://0.0.0.0:8000/ws/${sessionId}/${notebookId}`;
       console.log(`Socket URL: ${socketUrl}, sessionId: ${sessionId}, socketURL: ${socketBaseURL}`);
     } else {
-      socketUrl = `wss://${socketBaseURL}/ws/${sessionId}`;
+      socketUrl = `wss://${socketBaseURL}/ws/${sessionId}/${notebookId}`;
       console.log(`Socket URL: ${socketUrl}, sessionId: ${sessionId}`);
     }
 
@@ -137,12 +150,14 @@ export function useNotebookConnection({
     return Promise.resolve(); // Returns a promise to match the interface expected by the toolbar
   }, [sendMessage]);
 
-  const deployCode = useCallback((cells: NotebookCell[]) => {
+  const deployCode = useCallback((cells: NotebookCell[], user_id: string, name: string, notebook_id: string) => {
     // TODO: Change the default name
     sendMessage(JSON.stringify({
       type: 'deploy_lambda',
       allCode: cells.map((cell) => cell.code).join('\n'),
-      notebookName: "testground.ipynb"
+      user_id: user_id,
+      notebookName: name,
+      notebook_id: notebook_id
     }));
   }, [sendMessage]);
 

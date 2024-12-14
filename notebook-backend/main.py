@@ -17,64 +17,31 @@ app.add_middleware(
     allow_headers=["*"],
 )
 # Dictionary to manage kernels per session
-sessions = {}
+notebook_sessions = {}
 
-@app.websocket("/ws/{session_id}")
-async def websocket_endpoint(websocket: WebSocket, session_id: str):
-    
+@app.websocket("/ws/{session_id}/{notebook_id}")
+async def websocket_endpoint(websocket: WebSocket, session_id: str, notebook_id: str):
+
     # def get_relevant_env_path(env_name: str):
     #     curr_envs = {os.path.basename(env): env for env in json.loads(sh.conda("env", "list", "--json"))['envs']}
     #     relevant_env_path = curr_envs.get(env_name, None)
     #     return relevant_env_path
     
-    print(f"New connection with session ID: {session_id}")
-    user_id = 4
+    print(f"New connection with session ID: {session_id} and notebook ID: {notebook_id}")
     
     await websocket.accept()
     
-    print(f"New connection with session ID: {session_id}")
-    breakpoint()
-    
-    nb = notebook.NotebookHelper(user_id)
+    print(f"New connection with session ID: {session_id} and notebook ID: {notebook_id}")
 
-    if session_id not in sessions:
-        # Start a new kernel for the session
+    nb = notebook.NotebookUtils(notebook_id)
+
+
+    if notebook_id not in notebook_sessions:
         relevant_env_path = nb.initialize_relevant_env_path()
-        
-        # env_name = f"venv_kernel_{user_id}"
-        # relevant_env_path = get_relevant_env_path(env_name)
-        
-        # if not relevant_env_path:
-        #     sh.conda(
-        #         "create", "-n", env_name, "python=3.9", "ipykernel",
-        #         _out=sys.stdout, _err=sys.stderr, force=True
-        #     )
-        #     relevant_env_path = get_relevant_env_path(env_name)
-            
-        # relevant_env_path_python = os.path.join(relevant_env_path, "bin", "python3")
-        
-        # try:
-        #     sh.Command(relevant_env_path_python)(
-        #         "-m", "ipykernel", "install", 
-        #         "--user", "--name", env_name, "--display-name", env_name,
-        #         _out=sys.stdout, _err=sys.stderr)
-            
-        # except sh.ErrorReturnCode as e:
-        #     print(f"Error installing kernel: {e}")
-        
-        # ksm = KernelSpecManager()
-        
-        # if notebook.env_name not in ksm.find_kernel_specs():
-        #     raise ValueError(f"Kernel '{notebook.env_name}' not found.")
-        
-        # km = KernelManager(kernel_name=notebook.env_name)
-        # km.start_kernel()
-        # kc = km.client()
-        # kc.start_channels()
         kernel_manager, kernel_client = nb.initialize_kernel()
-        sessions[session_id] = {'km': kernel_manager, 'kc': kernel_client}
+        notebook_sessions[notebook_id] = {'km': kernel_manager, 'kc': kernel_client}
     else:
-        kc = sessions[session_id]['kc']
+        kc = notebook_sessions[notebook_id]['kc']
 
     try:
         while True:
@@ -104,7 +71,7 @@ async def websocket_endpoint(websocket: WebSocket, session_id: str):
                 # TODO: Get status/msg directly from function.
                 # TODO: Make a base lambda layer for basic dependencies.
                 dependencies = await nb.execute_code(code='!pip list --format=freeze')
-                lambda_handler = lambda_generator.LambdaGenerator(data['allCode'], user_id, data['notebookName'], dependencies)
+                lambda_handler = lambda_generator.LambdaGenerator(data['allCode'], data['user_id'], data['notebookName'], dependencies)
                 status = False
 
                 msg = "Processing the notebook"

@@ -3,18 +3,15 @@ import os
 import json
 from uuid import UUID
 from typing import Dict, Any
-from supabase import create_client, Client
 import logging
 from pydantic import BaseModel
 from dotenv import load_dotenv
 from ..types import SupabaseJobDetails, SupabaseJobList
 load_dotenv()
 logger = logging.getLogger(__name__)
-
-supabase: Client = create_client(
-    supabase_url=os.environ.get('SUPABASE_URL'),
-    supabase_key=os.environ.get('SUPABASE_SERVICE_KEY')
-)
+from supabase import Client
+from helpers.supabase.client import get_supabase_client
+supabase: Client = get_supabase_client()
 
 def get_all_jobs_for_user(user_id: UUID):
     try:

@@ -4,23 +4,18 @@ import boto3
 import sh
 import re
 from botocore.exceptions import ClientError
-import base64
-from lambda_generator.helpers.ecr_manager import ECRManager
+import base64 
+from .helpers.ecr_manager import ECRManager
 import json
 import uuid
 import logging
-from supabase import create_client, Client
 from datetime import datetime
-
 # Configure logging
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
-
-
-supabase: Client = create_client(
-    supabase_url=os.environ.get('SUPABASE_URL'),
-    supabase_key=os.environ.get('SUPABASE_SERVICE_KEY')
-)
+from supabase import Client
+from helpers.supabase.client import get_supabase_client
+supabase: Client = get_supabase_client()
 
 class LambdaGenerator:
     # TODO: Dynamically generate IAM roles.
@@ -300,6 +295,8 @@ class LambdaGenerator:
             self.submit_endpoint = f'https://{self.api_id}.execute-api.{self.region}.amazonaws.com/prod/submit'
 
             logger.info(f"API endpoints created successfully: submit={self.submit_endpoint}")
+
+            self.store_endpoint_supabase()
             
             return True, self.submit_endpoint
             
