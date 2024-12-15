@@ -132,6 +132,7 @@ export default function ProjectsPage() {
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const handleFileSelect = async (fileName: string, fileContent: { cells: any[] }) => {
+      debugger;
       const codeCells = fileContent?.cells?.filter((cell) => cell.cell_type === 'code') || [];
       const cosmicCells: NotebookCell[] = []
       
