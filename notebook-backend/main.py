@@ -22,11 +22,6 @@ notebook_sessions = {}
 @app.websocket("/ws/{session_id}/{notebook_id}")
 async def websocket_endpoint(websocket: WebSocket, session_id: str, notebook_id: str):
 
-    # def get_relevant_env_path(env_name: str):
-    #     curr_envs = {os.path.basename(env): env for env in json.loads(sh.conda("env", "list", "--json"))['envs']}
-    #     relevant_env_path = curr_envs.get(env_name, None)
-    #     return relevant_env_path
-    
     print(f"New connection with session ID: {session_id} and notebook ID: {notebook_id}")
     
     await websocket.accept()
@@ -71,7 +66,7 @@ async def websocket_endpoint(websocket: WebSocket, session_id: str, notebook_id:
                 # TODO: Get status/msg directly from function.
                 # TODO: Make a base lambda layer for basic dependencies.
                 dependencies = await nb.execute_code(code='!pip list --format=freeze')
-                lambda_handler = lambda_generator.LambdaGenerator(data['allCode'], data['user_id'], data['notebookName'], dependencies)
+                lambda_handler = lambda_generator.LambdaGenerator(data['all_code'], data['user_id'], data['notebook_name'], data['notebook_id'], dependencies)
                 status = False
 
                 msg = "Processing the notebook"
@@ -106,121 +101,6 @@ async def websocket_endpoint(websocket: WebSocket, session_id: str, notebook_id:
     finally:
         # Optionally, you can decide when to shut down the kernel
         pass
-    
-# async def execute_code(kernel_client, relevant_env_path: str, code: str) -> str:
-#     try:
-#         if code.strip().startswith('!'):
-#             magic_command = code.split(" ")[0][1:]
-#             base_magic_command = code.split(" ")[1:]
-            
-#             output_buffer = StringIO()
-#             error_buffer = StringIO()
-            
-#             result = sh.Command(os.path.join(relevant_env_path, "bin", magic_command))(
-#                 *base_magic_command,
-#                 _out=output_buffer, _err=error_buffer
-#             )
-#             return output_buffer.getvalue()
-        
-#     except Exception as e:
-#         return "Error in the magic command: " + str(e)
-        
-#     kernel_client.execute(code)
-#     output = ""
-#     count = 0
-#     while True:
-#         print("waiting for message")
-#         try:
-#             msg = kernel_client.get_iopub_msg(timeout=1)
-#             msg_type = msg['header']['msg_type']
-#             content = msg['content']
-#             if msg_type == 'status' and content['execution_state'] == 'busy':
-#                 print("execution busy")
-#                 count += 1
-#                 if count > 5:
-#                     continue
-#             if msg_type == 'stream':
-#                 print("stream", content)
-#                 output += content['text']
-#             elif msg_type == 'execute_result':
-#                 print("execute_result", content)
-#                 output += content['data']['text/plain']
-#             elif msg_type == 'error':
-#                 print("error", content)
-#                 output += '\n'.join(content['traceback'])
-#             elif msg_type == 'status' and content['execution_state'] == 'idle':
-#                 # Execution finished
-#                 output += '# Execution finished\n'
-#                 break
-#             print(f"content: {content} \n\n")
-#         except Exception as e:
-#             if str(e).strip():
-#                 print(f"error: {e} \n\n")
-#                 count += 1
-#                 if count > 10:
-#                     break
-#             continue
-#     return output
-
-# async def save_notebook(data: dict):
-#     try:
-#         notebook = data.get('cells')
-#         filename = data.get('filename')
-#         user_id = data.get('user_id')
-#         notebook_id = data.get('notebook_id')
-
-#         if not notebook_id:
-#             return {"success": False, "message": "Notebook ID is required."}
-        
-#         if not user_id:
-#             return {"success": False, "message": "User ID is required."}
-
-#         if not notebook:
-#             return {"success": False, "message": "No cells found in the file provided."}
-        
-
-#         response = save_or_update_notebook(notebook_id, user_id, notebook)
-#         # print("response", response)
-        
-#         # TODO: Save to s3 instead of local file system.
-#         """"
-#         filepath = os.path.join('notebooks', filename)
-#         with open(filepath, 'w') as f:
-#             json.dump(notebook, f)
-#         print(f"Saved notebook to {filepath}")
-#         """
-#         return {"success": True, "message": "Notebook saved successfully."}
-#     except Exception as e:
-#         return {"success": False, "message": str(e)}
-
-# async def load_notebook_handler(filename: str, notebook_id: str, user_id: str):
-#     """
-#     Load a notebook from S3
-#     Returns (success, content or error message)
-#     """
-#     if not notebook_id:
-#         return {"status": "error", "message": "Notebook ID is required.", "notebook": []}
-    
-#     if not user_id:
-#         return {"status": "error", "message": "User ID is required.", "notebook": []}
-    
-    
-#     try:
-#         file_path = f"notebooks/{user_id}/{notebook_id}.json"
-#         print(f"Attempting to load notebook from S3: {file_path}")  # Debug log
-        
-#         response = load_notebook(file_path)
-#         print("loaded_notebook", len(response))
- 
-        
-#         if response.get('statusCode') != 200:
-#             return {"status": "error", "message": "Notebook not found in S3.", "notebook": []}
-        
-#         notebook = json.loads(response.get('response'))
-#         return {"status": "success", "notebook": notebook, "message": "Notebook loaded succesfully."}
-#     except Exception as e:
-#         return {"status": "error", "message": str(e), "notebook": []}
-        
 
 @app.get("/status/jobs/{user_id}")
 async def status_endpoint_jobs_for_user(user_id: UUID):

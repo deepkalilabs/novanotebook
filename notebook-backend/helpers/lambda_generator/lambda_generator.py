@@ -19,12 +19,13 @@ supabase: Client = get_supabase_client()
 
 class LambdaGenerator:
     # TODO: Dynamically generate IAM roles.
-    def __init__(self, code_chunk_dirty: str, user_id: str, notebook_name: str, dependencies: str):
+    def __init__(self, code_chunk_dirty: str, user_id: str, notebook_name: str, notebook_id: str, dependencies: str):
         self.code_chunk_dirty = code_chunk_dirty
         self.user_id = user_id
         self.notebook_name = notebook_name.split('.')[0]
         self.lambda_fn_name = f"{user_id}_{self.notebook_name}_lambda"
         self.api_name = f"{user_id}_{self.notebook_name}_api"
+        self.notebook_id = notebook_id
         self.lambda_zip_folder = ''
         self.code_chunk_clean = ''
         # TODO: Make a base lambda layer for basic dependencies.
@@ -184,7 +185,14 @@ class LambdaGenerator:
             },
             requestValidatorId=self.validator_id
         )
-        
+
+        requestTemplateBody = f'''{{
+            "body": $input.json('$'),
+            "request_id": "$context.requestId",
+            "notebook_id": "{self.notebook_id}",
+            "timestamp": "$context.requestTimeEpoch"
+        }}'''
+
         # Step 3: Configure integration with async Lambda invocation
         self.api_gateway_client.put_integration(
             restApiId=self.api_id,
@@ -194,7 +202,7 @@ class LambdaGenerator:
             integrationHttpMethod='POST',
             uri=f'arn:aws:apigateway:{self.region}:lambda:path/2015-03-31/functions/{self.lambda_fn_arn}/invocations',
             requestTemplates={
-                'application/json': '{"body":$input.json(\'$\'),"request_id":"$context.requestId","timestamp":"$context.requestTimeEpoch"}'
+                'application/json': requestTemplateBody
             },
             requestParameters={
                 'integration.request.header.X-Amz-Invocation-Type': "'Event'"
@@ -309,13 +317,10 @@ class LambdaGenerator:
             # }
             
     def store_endpoint_supabase(self):
-        supabase.table('notebook_endpoints').insert({
-            'notebook_id': '',
-            'user_id': '',
-            'created_at': datetime.now().isoformat(),
-            'updated_at': datetime.now().isoformat(),
-            'endpoint': self.submit_endpoint
-        })
+        supabase.table('notebooks').update({
+            'submit_endpoint': self.submit_endpoint,
+            'updated_at': datetime.now().isoformat()
+        }).eq('id', self.notebook_id).execute()
         
 
 # if __name__ == "__main__":

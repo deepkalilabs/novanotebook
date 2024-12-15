@@ -154,9 +154,9 @@ export function useNotebookConnection({
     // TODO: Change the default name
     sendMessage(JSON.stringify({
       type: 'deploy_lambda',
-      allCode: cells.map((cell) => cell.code).join('\n'),
+      all_code: cells.map((cell) => cell.code).join('\n'),
       user_id: user_id,
-      notebookName: name,
+      notebook_name: name,
       notebook_id: notebook_id
     }));
   }, [sendMessage]);
