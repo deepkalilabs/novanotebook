@@ -18,6 +18,11 @@ from helpers.supabase.notebooks import get_notebook_by_id
 from helpers.aws.s3.s3 import save_or_update_notebook, load_notebook
 from helpers.types import OutputExecutionMessage, OutputSaveMessage, OutputLoadMessage, OutputGenerateLambdaMessage, OutputPosthogSetupMessage
 from uuid import UUID
+from connectors.helpers.aws.s3.helpers import S3Helper
+from connectors.services.posthog.posthog_service import PostHogService
+import logging
+
+logging.basicConfig(level=logging.INFO)
 app = FastAPI()
 
 # Enable CORS for frontend communication
@@ -108,34 +113,65 @@ async def websocket_endpoint(websocket: WebSocket, session_id: str):
                 await websocket.send_json(output.model_dump())
 
             elif data['type'] == 'posthog_setup':
-                print("Setting up PostHog...")
+                logging.info("Setting up PostHog...")
+                logging.info("Task 1: Save the credentials to S3")
+                logging.info("Task 2: Setup PostHog in the notebook")
+                user_id = data.get('user_id')
+                api_key = data.get('api_key')
+                base_url = data.get('base_url')
+
+                logging.info(f"data: {data}")
+                logging.info(f"user_id: {user_id}, api_key: {api_key}, base_url: {base_url}")
+
+                aws_credentials = {
+                    "aws_access_key_id": os.environ.get('AWS_ACCESS_KEY_ID'),
+                    "aws_secret_access_key": os.environ.get('AWS_SECRET_ACCESS_KEY'),
+                    "region_name": os.environ.get('AWS_DEFAULT_REGION')
+                }
+
+                # Format the credentials in the new structure
+                posthog_credentials = {
+                    "posthog": {
+                        "credentials": {
+                            "api_key": api_key,
+                            "base_url": base_url
+                        }
+                    }
+                }
+                print(f"posthog_credentials: {posthog_credentials['posthog']['credentials']}")
+
+                logging.info("Task 1: Saving credentials to S3")
+                # Initialize S3Helper
+                s3_helper = S3Helper(credentials=aws_credentials)
+                await s3_helper.init_s3(user_id)  # This initializes the S3 client
+
+                # Now save the credentials
+                response = s3_helper.save_or_update_credentials(user_id, posthog_credentials)
+                logging.info(f"response: {response}")
+
+                if response['ResponseMetadata']['HTTPStatusCode'] != 200:
+                    raise ValueError("Failed to save credentials")
                 
-                setup_code = f"""
-from connectors.adapters.posthog_adapter import PostHogAdapter
-from IPython.display import display, HTML
+                #Task 2: Setup PostHog in the notebook
+                # Setup PostHog in the notebook
+                posthog_setup_code = f"""
+                from connectors.services.posthog.posthog_service import PostHogService
+                from IPython import get_ipython
 
-# Initialize PostHog adapter
-posthog_adapter = PostHogAdapter("{data['api_key']}", "{data['host_url']}")
+                # Initialize PostHog service
+                posthog_service = PostHogService({posthog_credentials['posthog']['credentials']})
 
-# Make it available in the notebook namespace
-get_ipython().user_ns['posthog_adapter'] = posthog_adapter
 
-# Display success message
-display(HTML('''
-<div style="padding: 10px; background-color: #e6ffe6; border-radius: 5px;">
-    <h4>✅ PostHog Connected</h4>
-    <p>The PostHog adapter is now available as <code>posthog_adapter</code></p>
-    <p>Example usage:</p>
-    <ul>
-        <li><code>await posthog_adapter.get_user_engagement(user_id, start_date, end_date)</code></li>
-        <li><code>await posthog_adapter.get_churn_risk_score(user_id, start_date, end_date)</code></li>
-    </ul>
-</div>
-'''))
-"""
+                # Get IPython instance and inject into namespace
+                ipython = get_ipython()
+                ipython.user_ns['posthog_service'] = posthog_service
+                ipython.user_ns['posthog_client'] = posthog_service.client
+                ipython.user_ns['posthog_adapter'] = posthog_service.adapter
+                """
+                logging.info(f"Injecting PostHog setup code into the notebook: {posthog_setup_code}")
+                output = await execute_code(kernel_client=kc, relevant_env_path=relevant_env_path, code=posthog_setup_code)
+                logging.info(f"output: {output}")
 
-                output = await execute_code(kernel_client=kc, relevant_env_path=relevant_env_path, code=setup_code)
-                
                 response = OutputPosthogSetupMessage(type='posthog_setup', success=True, message="PostHog setup complete")
                 await websocket.send_json(response.model_dump())
                 
@@ -263,7 +299,7 @@ async def save_notebook(data: dict):
         
 
         response = save_or_update_notebook(notebook_id, user_id, notebook)
-        # print("response", response)
+        # print("response", response)   
         
         # TODO: Save to s3 instead of local file system.
         """"

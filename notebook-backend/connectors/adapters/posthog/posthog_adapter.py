@@ -67,13 +67,13 @@ class PostHogAdapter:
     
 
     def get_users_by_group(self, group_key: str):
-        return self.client.get_users_by_group(group_key)
+        pass
 
     def get_events_by_user(self, user_key: str):
-        return self.client.get_events_by_user(user_key)
+        pass
 
     def get_events_by_group(self, group_key: str):
-        return self.client.get_events_by_group(group_key)
+        pass
 
 
    

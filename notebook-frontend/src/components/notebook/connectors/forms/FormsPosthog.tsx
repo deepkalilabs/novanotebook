@@ -8,19 +8,21 @@ import { useState } from 'react'
 import { Loader2 } from 'lucide-react'
 
 interface FormsPosthogProps {
-  posthogSetup: (apiKey: string, hostUrl: string) => void;
+  posthogSetup: (user_id: string, apiKey: string, hostUrl: string) => void;
 }
 
 export default function FormsPosthog({ posthogSetup }: FormsPosthogProps) {
   const [apiKey, setApiKey] = useState('')
-  const [hostUrl, setHostUrl] = useState('https://app.posthog.com')
+  const [baseUrl, setBaseUrl] = useState('https://app.posthog.com')
+  const user = localStorage.getItem('user')
+  const userId = user ? JSON.parse(user).id : '';
   const [isConnecting, setIsConnecting] = useState(false)
 
   const handleConnect = async (e: React.FormEvent<HTMLButtonElement>) => {
     console.log('Connecting to PostHog...')
     e.preventDefault()
     setIsConnecting(true)
-    posthogSetup(apiKey, hostUrl)
+    posthogSetup(userId, apiKey, baseUrl)
     setIsConnecting(false)
   }
 
@@ -48,11 +50,11 @@ export default function FormsPosthog({ posthogSetup }: FormsPosthogProps) {
         </div>
 
         <div className="space-y-2">
-          <label className="font-medium">Host URL</label>
+          <label className="font-medium">Base URL</label>
           <Input 
             type="text" 
-            value={hostUrl} 
-            onChange={(e) => setHostUrl(e.target.value)} 
+            value={baseUrl} 
+            onChange={(e) => setBaseUrl(e.target.value)} 
           />
           <p className="text-sm text-muted-foreground">
             Default is app.posthog.com. Change only if you're self-hosting PostHog.

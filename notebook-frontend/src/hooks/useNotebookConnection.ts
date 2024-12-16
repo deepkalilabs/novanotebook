@@ -156,11 +156,12 @@ export function useNotebookConnection({
     }));
   }, [sendMessage]);
 
-  const posthogSetup = useCallback((apiKey: string, hostUrl: string) => {
+  const posthogSetup = useCallback((user_id: string, apiKey: string, baseUrl: string) => {
     sendMessage(JSON.stringify({
       type: 'posthog_setup',
+      user_id: user_id,
       api_key: apiKey,
-      host_url: hostUrl
+      base_url: baseUrl
     }));
   }, [sendMessage]);
 

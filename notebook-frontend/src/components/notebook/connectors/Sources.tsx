@@ -9,7 +9,7 @@ interface SourcesTabProps {
         type: string;
         status: string;
     }[];
-    posthogSetup: (apiKey: string, hostUrl: string) => void;
+    posthogSetup: (user_id: string, apiKey: string, baseUrl: string) => void;
 }   
 
 const globalSources = [

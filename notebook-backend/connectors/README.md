@@ -23,7 +23,7 @@ This folder contains the connectors for the different 3rd party services that Co
 - Databricks
  
 
-##Business Intelligence
+## Business Intelligence
 - Looker
 - Metabase
 - Looker Studio

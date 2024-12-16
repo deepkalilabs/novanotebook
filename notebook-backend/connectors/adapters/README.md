@@ -1,5 +1,5 @@
 # Data Adapters
-Purpose: Adapts or transforms data into an internal format usable by your application.
+Purpose: Adapts or transforms data into an internal format usable by services.
 
 ## Example of subfolder:
 `adapters/posthog/posthog_adapter.py`
