@@ -14,10 +14,10 @@ class PostHogClient:
         self.headers = {"Authorization": f"Bearer {self.api_key}"}
 
     def test_connection(self) -> Dict[str, Any]:
-        """Test connection to PostHog"""
+        """Test connection to PostHog by getting all organizations"""
         try:
             response = requests.get(
-                f"{self.base_url}/api/projects/",
+                f"{self.base_url}/api/organizations/",
                 headers=self.headers,
                 timeout=10
             )
@@ -33,59 +33,188 @@ class PostHogClient:
                 "message": f"PostHog connection failed: {str(e)}",
                 "data": None
             }
-
-    def get_all_groups(self) -> List[Group]:
-        """Get all groups"""
-        response = self.app.get(
-            f"{self.base_url}/api/groups/",
-            headers=self.headers
-        )
-        return [Group(**group) for group in response.json()]
-
-    def get_all_users(self) -> List[User]:
-        """Get all users"""
-        response = self.app.get(
-            f"{self.base_url}/api/projects/users/",
-            headers=self.headers
-        )
-        return [User(**user) for user in response.json()]
-
-    def get_all_events(self) -> List[Event]:
-        """Get all events"""
-        response = self.app.get(
-            f"{self.base_url}/api/events/",
-            headers=self.headers
-        )
-        return [Event(**event) for event in response.json()]
-
-    # Get sessions
-    """ 
-    async def raw_get_all_sessions(self) -> List[Session]:
-        url = f"{self.base_url}/api/sessions/"
-        async with httpx.AsyncClient() as client:
-            response = await client.get(url, headers=self.headers)
-            response.raise_for_status()
-            sessions = response.json()
-            return [Session(**session) for session in sessions]
+    
     """
+    Section: Organization API
+    url: https://posthog.com/docs/api/organizations
+    """
+    def get_organizations(self) -> Dict[str, Any]:
+      """Get all organizations"""
+      try:
+            response = requests.get(
+                f"{self.base_url}/api/organizations/",
+                headers=self.headers,
+                timeout=10
+            )
+            response.raise_for_status()
+            return {
+                "status": "success", 
+                "message": "Connected to PostHog",
+                "data": response.json()
+            }
+      except requests.RequestException as e:
+            return {
+                "status": "error",
+                "message": f"PostHog connection failed: {str(e)}",
+                "data": None
+            }
+    
 
-    def get_events(self) -> Dict[str, Any]:
-        """Get PostHog events"""
+    def get_project(self, project_id: str) -> Dict[str, Any]:
+        """Get a project"""
+        if not project_id:
+            return {
+                "status": "error",
+                "message": "Project ID is required",
+                "data": None
+            }
         try:
             response = requests.get(
-                f"{self.base_url}/api/events/",
+                f"{self.base_url}/api/projects/{project_id}",
                 headers=self.headers,
                 timeout=10
             )
             response.raise_for_status()
             return {
                 "status": "success",
-                "message": "Events retrieved successfully",
+                "message": "Project retrieved successfully",
                 "data": response.json()
             }
         except requests.RequestException as e:
             return {
                 "status": "error",
-                "message": f"Failed to fetch events: {str(e)}",
+                "message": f"Failed to fetch project: {str(e)}",
+                "data": None
+            }
+
+    """
+    Section: Group API
+    url: https://posthog.com/docs/api/groups
+    """
+    def get_groups(self, project_id: str) -> List[Group]:
+        """
+        Description: List all groups for a project
+        url: https://posthog.com/docs/api/groups#get-api-projects-project_id-groups
+        TODO: Add query params such as cursor, search, group_type
+        """
+        if not project_id:
+            return {
+                "status": "error",
+                "message": "Project ID is required",
+                "data": None
+            }
+        
+        try:
+            response = requests.get(
+                f"{self.base_url}/api/projects/{project_id}/groups/",
+                headers=self.headers,
+                timeout=10
+            )
+            response.raise_for_status()
+            return {
+                "status": "success",
+                "message": "Group retrieved successfully",
+                "data": response.json()
+            }
+        except requests.RequestException as e:
+            return {
+                "status": "error",
+                "message": f"Failed to fetch group: {str(e)}",
+                "data": None
+            }
+        
+    def get_group_find(self, project_id) -> List[Group]:
+        """
+        Description: Find a group by key or group index
+        url: https://posthog.com/docs/api/groups#get-api-projects-project_id-groups
+        TODO: Add query params such as group_key, group_type_index
+        """
+        if not project_id:
+            return {
+                "status": "error",
+                "message": "Project ID is required",
+                "data": None
+            }
+        
+        try:
+            response = requests.get(
+                f"{self.base_url}/api/projects/{project_id}/groups/find/",
+                headers=self.headers,
+                timeout=10
+            )
+            response.raise_for_status()
+            return {
+                "status": "success",
+                "message": "Group retrieved successfully",
+                "data": response.json()
+            }
+        except requests.RequestException as e:
+            return {
+                "status": "error",
+                "message": f"Failed to fetch group: {str(e)}",
+                "data": None
+            }
+
+    def get_group_types(self, project_id) -> List[Group]:
+        """
+        Description: Get group types
+        url: https://posthog.com/docs/api/groups-types
+        """
+        if not project_id:
+            return {
+                "status": "error",
+                "message": "Project ID is required",
+                "data": None
+            }
+        
+        try:
+            response = requests.get(
+                f"{self.base_url}/api/projects/{project_id}/group-types/",
+                headers=self.headers,
+                timeout=10
+            )
+            response.raise_for_status()
+            return {
+                "status": "success",
+                "message": "Group types retrieved successfully",
+                "data": response.json()
+            }
+        except requests.RequestException as e:
+            return {
+                "status": "error",
+                "message": f"Failed to fetch group types: {str(e)}",
+                "data": None
+            }
+
+
+
+    def generate_test_data(self, project_id: str, organization_id: str) -> Dict[str, Any]:
+        """
+        Description: Generate test data
+        url: https://posthog.com/docs/api/projects#get-api-organizations-organization_id-projects-id-is_generating_demo_data
+        """
+        if not project_id:
+            return {
+                "status": "error",
+                "message": "Project ID is required",
+                "data": None
+            }
+        
+        try:
+            response = requests.post(
+                f"{self.base_url}/api/organizations/{organization_id}/projects/{project_id}/is_generating_demo_data/",
+                headers=self.headers,
+                timeout=10
+            )
+            response.raise_for_status()
+            return {
+                "status": "success",
+                "message": "Test data generated successfully",
+                "data": response.json()
+            }
+        except requests.RequestException as e:
+            return {
+                "status": "error",
+                "message": f"Failed to generate test data: {str(e)}",
                 "data": None
             }
