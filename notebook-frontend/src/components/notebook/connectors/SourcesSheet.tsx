@@ -70,7 +70,7 @@ export function SourcesSheet({ posthogSetup }: SourcesSheetProps) {
 
                 <div className="col-span-3 border-t pt-4">
                   <Button variant="ghost" className="w-full justify-start text-muted-foreground">
-                    <span className="text-sm">Don't see what you need? Email us to suggest an integration</span>
+                    <span className="text-sm">Interested in a new integration? Email us to suggest an integration</span>
                   </Button>
                 </div>
               </div>

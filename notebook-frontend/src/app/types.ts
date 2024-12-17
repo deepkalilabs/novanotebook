@@ -79,3 +79,8 @@ export interface OutputPosthogSetupMessage {
     success: boolean;
     message: string;
 }
+
+export interface User {
+    id: string;
+    email: string;
+}

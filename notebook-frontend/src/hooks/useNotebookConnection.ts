@@ -26,8 +26,6 @@ export function useNotebookConnection({
 }: NotebookConnectionProps) {
   const { toast } = useToast();
   const sessionId = useRef(uuidv4()).current;
-  //Set sessionId in local storage
-  localStorage.setItem('sessionId', sessionId);
 
   const setupSocketUrl = useCallback(() => {
 

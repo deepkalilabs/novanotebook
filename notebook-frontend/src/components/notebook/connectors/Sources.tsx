@@ -12,25 +12,10 @@ interface SourcesTabProps {
     posthogSetup: (user_id: string, apiKey: string, baseUrl: string) => void;
 }   
 
-const globalSources = [
-    {
-      name: 'PostHog Production',
-      type: 'posthog',
-      status: 'connected'
-    },
-    {
-      name: 'OpenAI',
-      type: 'llm',
-      status: 'connected'
-    },
-    {
-      name: 'Customer Database',
-      type: 'postgresql',
-      status: 'connected'
-    }
-  ];
+
 
 export function SourcesTab({ globalSources, posthogSetup }: SourcesTabProps) {
+  console.log(globalSources);
     const g = [
         {
           name: 'PostHog Production',

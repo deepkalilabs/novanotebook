@@ -4,7 +4,7 @@ import { useParams, useSearchParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import NotebookPage from '@/components/notebook/NotebookPage';
 import { Jobs } from '@/app/types';
-
+import { useUserStore } from '@/app/store';
 export default function Notebook() {
   const params = useParams();
   const searchParams = useSearchParams();
@@ -12,11 +12,10 @@ export default function Notebook() {
   const [userId, setUserId] = useState('');
   const id = params.id as string;
   const name = searchParams.get('name') || '';
-  //Get user id from local storage
+  const { user } = useUserStore();
 
   useEffect(() => {
-    // Move localStorage access into useEffect
-    const userId = JSON.parse(localStorage.getItem('user') || '{}').id;
+    const userId = user?.id || '';
     setUserId(userId || '');
   }, []);
 

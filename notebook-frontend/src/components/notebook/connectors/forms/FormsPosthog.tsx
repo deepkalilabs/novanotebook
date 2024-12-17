@@ -1,21 +1,20 @@
-//Posthog form, inputs are:
-// - API key
-// - Host URL
+"use client"
 
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { useState } from 'react'
 import { Loader2 } from 'lucide-react'
+import { useUserStore } from '@/app/store'
 
 interface FormsPosthogProps {
-  posthogSetup: (user_id: string, apiKey: string, hostUrl: string) => void;
+  posthogSetup: (userId: string, apiKey: string, baseUrl: string) => void;
 }
 
 export default function FormsPosthog({ posthogSetup }: FormsPosthogProps) {
   const [apiKey, setApiKey] = useState('')
   const [baseUrl, setBaseUrl] = useState('https://app.posthog.com')
-  const user = localStorage.getItem('user')
-  const userId = user ? JSON.parse(user).id : '';
+  const { user } = useUserStore();
+  const userId = user?.id || '';
   const [isConnecting, setIsConnecting] = useState(false)
 
   const handleConnect = async (e: React.FormEvent<HTMLButtonElement>) => {
@@ -57,7 +56,7 @@ export default function FormsPosthog({ posthogSetup }: FormsPosthogProps) {
             onChange={(e) => setBaseUrl(e.target.value)} 
           />
           <p className="text-sm text-muted-foreground">
-            Default is app.posthog.com. Change only if you're self-hosting PostHog.
+            Default is app.posthog.com. Change only if you are self-hosting PostHog.
           </p>
         </div>
       </div>
