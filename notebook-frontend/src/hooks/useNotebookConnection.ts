@@ -7,12 +7,20 @@ import { v4 as uuidv4 } from 'uuid';
 import { NotebookCell, OutputDeployMessage, OutputPosthogSetupMessage } from '@/app/types';
 import { OutputExecutionMessage, OutputSaveMessage, OutputLoadMessage } from '@/app/types';
 import { useToast } from '@/hooks/use-toast';
+
+interface NotebookDetails {
+  notebookId: string
+  userId: string
+  name: string 
+}
+
 interface NotebookConnectionProps {
   onOutput?: (cellId: string, output: string) => void;
   onNotebookLoaded?: (cells: NotebookCell[]) => void;
   onNotebookSaved?: (data: OutputSaveMessage) => void;
   onError?: (error: string) => void;
   onNotebookDeployed?: (data: OutputDeployMessage) => void;
+  notebookDetails?: NotebookDetails;
   onPosthogSetup?: (data: OutputPosthogSetupMessage) => void;
 }
 
@@ -22,27 +30,32 @@ export function useNotebookConnection({
   onNotebookSaved,
   onNotebookDeployed,
   onPosthogSetup,
-  onError
+  onError,
+  notebookDetails
 }: NotebookConnectionProps) {
   const { toast } = useToast();
   const sessionId = useRef(uuidv4()).current;
+  const notebookId = notebookDetails?.notebookId
+  const userId = notebookDetails?.userId
+  const notebookName = notebookDetails?.name
+
+  console.log("details", notebookId, userId, notebookName)
 
   const setupSocketUrl = useCallback(() => {
-
     const socketBaseURL = process.env.NODE_ENV === 'development' ? '0.0.0.0' : process.env.NEXT_PUBLIC_AWS_EC2_IP;
-
-    let socketUrl = '';
-
-    if (process.env.NODE_ENV === 'development') {
-      socketUrl = `ws://0.0.0.0:8000/ws/${sessionId}`;
-      console.log(`Socket URL: ${socketUrl}, sessionId: ${sessionId}, socketURL: ${socketBaseURL}`);
-    } else {
-      socketUrl = `wss://${socketBaseURL}/ws/${sessionId}`;
-      console.log(`Socket URL: ${socketUrl}, sessionId: ${sessionId}`);
+    
+    if (!sessionId || !notebookId) {
+        console.error('Missing sessionId or notebookId');
+        return '';
     }
 
+    const socketUrl = process.env.NODE_ENV === 'development'
+        ? `ws://0.0.0.0:8000/ws/${sessionId}/${notebookId}`
+        : `wss://${socketBaseURL}/ws/${sessionId}/${notebookId}`;
+        
+    console.log(`Socket URL: ${socketUrl}`);
     return socketUrl;
-  }, []);
+  }, [sessionId, notebookId]);
 
   const socketUrl = setupSocketUrl();
 
@@ -145,7 +158,7 @@ export function useNotebookConnection({
     return Promise.resolve(); // Returns a promise to match the interface expected by the toolbar
   }, [sendMessage]);
 
-  const deployCode = useCallback((cells: NotebookCell[]) => {
+  const deployCode = useCallback((cells: NotebookCell[], user_id: string, name: string, notebook_id: string) => {
     // TODO: Change the default name
     sendMessage(JSON.stringify({
       type: 'deploy_lambda',

@@ -1,12 +1,10 @@
 import boto3
 import os
 import json
-from supabase import create_client, Client
+from supabase import Client
+from helpers.supabase.client import get_supabase_client
+supabase: Client = get_supabase_client()
 
-supabase: Client = create_client(
-    supabase_url=os.environ.get('SUPABASE_URL'),
-    supabase_key=os.environ.get('SUPABASE_SERVICE_KEY')
-)
 ##Init boto3
 s3 = boto3.client('s3', 
     aws_access_key_id=os.environ.get('AWS_ACCESS_KEY_ID'),

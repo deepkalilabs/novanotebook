@@ -5,16 +5,14 @@ import uuid
 import json
 from jupyter_client import KernelManager
 import os
-from pydantic import BaseModel
 import ssl
 from pprint import pprint
-from lambda_generator.generate_lambda_fn import LambdaGenerator
+from helpers.lambda_generator.lambda_generator import LambdaGenerator
 import sh
 from jupyter_client.kernelspec import KernelSpecManager
 import sys
 from io import StringIO
 from helpers.supabase.job_status import get_all_jobs_for_user, get_job_by_request_id, get_all_jobs_for_notebook
-from helpers.supabase.notebooks import get_notebook_by_id
 from helpers.aws.s3.s3 import save_or_update_notebook, load_notebook
 from helpers.types import OutputExecutionMessage, OutputSaveMessage, OutputLoadMessage, OutputGenerateLambdaMessage, OutputPosthogSetupMessage
 from uuid import UUID
@@ -36,15 +34,15 @@ app.add_middleware(
 # Dictionary to manage kernels per session
 sessions = {}
 
-@app.websocket("/ws/{session_id}")
-async def websocket_endpoint(websocket: WebSocket, session_id: str):
+@app.websocket("/ws/{session_id}/{notebook_id}")
+async def websocket_endpoint(websocket: WebSocket, session_id: str, notebook_id: str):
     
     def get_relevant_env_path(env_name: str):
         curr_envs = {os.path.basename(env): env for env in json.loads(sh.conda("env", "list", "--json"))['envs']}
         relevant_env_path = curr_envs.get(env_name, None)
         return relevant_env_path
     
-    print(f"New connection with session ID: {session_id}")
+    print(f"New connection with session ID: {session_id} and notebook ID: {notebook_id}")
     
     await websocket.accept()
     
@@ -160,7 +158,6 @@ async def websocket_endpoint(websocket: WebSocket, session_id: str):
 
                 # Initialize PostHog service
                 posthog_service = PostHogService({posthog_credentials['posthog']['credentials']})
-
 
                 # Get IPython instance and inject into namespace
                 ipython = get_ipython()

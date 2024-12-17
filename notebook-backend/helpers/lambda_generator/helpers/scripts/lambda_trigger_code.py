@@ -23,6 +23,7 @@ def lambda_handler(event, context):
         
         # Extract request ID and body from API Gateway event
         request_id = event.get('request_id')
+        notebook_id = event.get('notebook_id')
         body = event.get('body')
         
         supabase.table('lambda_jobs').insert({
@@ -30,8 +31,7 @@ def lambda_handler(event, context):
             'created_at': datetime.now().isoformat(),
             'status': 'PROCESSING',
             'completed': False,
-            'user_id': 1,  # TODO: Extract from event
-            'notebook_id': 1,  # TODO: Extract from event
+            'notebook_id': notebook_id
         }).execute()
         
         if not isinstance(body, dict):
