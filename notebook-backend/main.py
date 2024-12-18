@@ -10,6 +10,7 @@ from helpers.aws.s3.s3 import S3Helper
 import logging
 
 logging.basicConfig(level=logging.INFO)
+
 app = FastAPI()
 
 # Enable CORS for frontend communication

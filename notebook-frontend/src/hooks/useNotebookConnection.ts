@@ -32,12 +32,11 @@ export function useNotebookConnection({
   onError,
   notebookDetails,
   onPosthogSetup
+
 }: NotebookConnectionProps) {
   const { toast } = useToast();
   const sessionId = useRef(uuidv4()).current;
   const notebookId = notebookDetails?.notebookId
- 
-
   console.log("details", notebookId)
 
   const setupSocketUrl = useCallback(() => {
