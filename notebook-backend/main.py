@@ -1,12 +1,8 @@
-import string
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
-import uuid
 import json
 from jupyter_client import KernelManager
 import os
-import ssl
-from pprint import pprint
 from helpers.lambda_generator.lambda_generator import LambdaGenerator
 import sh
 from jupyter_client.kernelspec import KernelSpecManager
