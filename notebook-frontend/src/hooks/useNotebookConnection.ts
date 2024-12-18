@@ -159,6 +159,7 @@ export function useNotebookConnection({
   }, [sendMessage]);
 
   const deployCode = useCallback((cells: NotebookCell[], user_id: string, name: string, notebook_id: string) => {
+    console.log("deployCode", cells, user_id, name, notebook_id)
     // TODO: Change the default name
     sendMessage(JSON.stringify({
       type: 'deploy_lambda',
