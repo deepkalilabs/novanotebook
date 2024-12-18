@@ -8,17 +8,11 @@ import { useNotebookStore } from '@/app/store';
 import { useNotebookConnection } from '@/hooks/useNotebookConnection';
 import { NotebookToolbar } from '@/components/notebook/NotebookToolbar';
 import { NotebookCell } from '@/components/notebook/NotebookCell';
-import { Jobs, OutputDeployMessage } from '@/app/types';
+import { Jobs, OutputDeployMessage, CellType, NotebookPageProps } from '@/app/types';
 import DeploymentDialog from '@/components/notebook/NotebookDeploy';
 import { SourcesTab } from '@/components/notebook/connectors/Sources';
 import { JobsPage } from '@/components/notebook/jobs/JobsPage';
 
-interface NotebookPageProps {
-  notebookId: string;
-  userId: string;
-  name: string;
-  jobs?: Jobs;
-}
 
 export default function NotebookPage({ notebookId, userId, name, jobs }: NotebookPageProps) {
   const { toast } = useToast();
@@ -40,7 +34,9 @@ export default function NotebookPage({ notebookId, userId, name, jobs }: Noteboo
       setCells(cells);
       toast({
         title: 'Notebook loaded',
-        description: 'Successfully loaded notebook'
+        description: 'Successfully loaded notebook',
+        variant: "default",
+        duration: 1000
       });
     },
     onNotebookSaved: (data) => {
@@ -49,7 +45,8 @@ export default function NotebookPage({ notebookId, userId, name, jobs }: Noteboo
         toast({
           title: "Notebook saved",
           description: data.message,
-          variant: "default"
+          variant: "default",
+          duration: 1000
         });
       } else {
         toast({
@@ -84,7 +81,8 @@ export default function NotebookPage({ notebookId, userId, name, jobs }: Noteboo
       toast({
         title: 'Kernel Status',
         description: connectionStatus,
-        variant: 'destructive'
+        variant: 'destructive',
+        duration: 2000
       });
     }
   }, [isConnected, connectionStatus, toast]);
@@ -114,6 +112,10 @@ export default function NotebookPage({ notebookId, userId, name, jobs }: Noteboo
   const handleDeploy = async () => {
     deployCode(cells, userId, name, notebookId)
   }
+
+  useEffect(() => {
+    console.log(cells);
+  }), [cells];
 
   return (
     <div className="flex min-h-screen">
@@ -150,7 +152,10 @@ export default function NotebookPage({ notebookId, userId, name, jobs }: Noteboo
             <div className="sticky top-0 z-50 bg-background py-2">
               <NotebookToolbar
                 name={name}
-                onHandleAddCell={addCell}
+                onHandleAddCell={(type: CellType) => {
+                  addCell(type)
+                  handleSave(name)
+                }}
                 onHandleSave={handleSave}
                 onHandleLoad={handleLoad}
                 onHandleRestartKernel={restartKernel}
@@ -174,9 +179,10 @@ export default function NotebookPage({ notebookId, userId, name, jobs }: Noteboo
                   id={cell.id}
                   code={cell.code}
                   output={cell.output}
+                  type={cell.type}
                   executionCount={cell.executionCount}
                   isExecuting={false}
-                  onCodeChange={(code) => updateCellCode(cell.id, code )}
+                  onCodeChange={(code) => updateCellCode(cell.id, code)}
                   onExecute={() => handleExecute(cell.id)}
                   onDelete={() => deleteCell(cell.id)}
                   onMoveUp={() => moveCellUp(cell.id)}

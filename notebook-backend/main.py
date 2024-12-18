@@ -33,19 +33,19 @@ async def websocket_endpoint(websocket: WebSocket, session_id: str, notebook_id:
     
     print(f"New connection with session ID: {session_id} and notebook ID: {notebook_id}")
 
-    nb = notebook.NotebookUtils(notebook_id)
-
-
-    if notebook_id not in notebook_sessions:
-        relevant_env_path = nb.initialize_relevant_env_path()
-    
-    kernel_manager, kernel_client = nb.initialize_kernel()
-    notebook_sessions[notebook_id] = {'km': kernel_manager, 'kc': kernel_client}
-
     try:
         while True:
+            if notebook_id not in notebook_sessions:
+                nb = notebook.NotebookUtils(notebook_id)
+                await websocket.send_json({"type": "init", "message": "Kernel initializing. Please wait."})
+                kernel_manager, kernel_client = nb.initialize_kernel()
+                notebook_sessions[notebook_id] = {'km': kernel_manager, 'kc': kernel_client, 'nb': nb}
+            
+            nb = notebook_sessions[notebook_id]['nb']
+
             data = await websocket.receive_json()
-            if data['type'] == 'execute':
+            
+            if data['type'] == 'execute':                    
                 code = data['code']
                 output = await nb.execute_code(code=code)
 

@@ -9,12 +9,12 @@ import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
 import { redirect, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import FileUpload from '@/components/FileUpload';
 import { v4 as uuidv4 } from 'uuid';
 import { NotebookCell } from '@/app/types';
 import { User } from '@supabase/supabase-js';
 import { useNotebookConnection } from '@/hooks/useNotebookConnection';
 import { useToast } from '@/hooks/use-toast';
+import NotebookUpload from '@/components/NotebookUpload';
 
 const templateData = {
     "templates": [
@@ -126,24 +126,26 @@ export default function ProjectsPage() {
         e.preventDefault();
         const notebookId = await createNotebookHelper(newNotebookName);
         alert(`Notebook created successfully at ${notebookId}`);
-
+        openNotebook(notebookId, newNotebookName);
         setDialogOpen(false);
     }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const handleFileSelect = async (fileName: string, fileContent: { cells: any[] }) => {
-      debugger;
-      const codeCells = fileContent?.cells?.filter((cell) => cell.cell_type === 'code') || [];
+      const codeCells = fileContent?.cells?.filter((cell) => ['code', 'markdown'].includes(cell.cell_type) || []);
       const cosmicCells: NotebookCell[] = []
       
       codeCells.forEach((cell) => {
         cosmicCells.push({
           id: uuidv4(),
-          code: cell.source.join(''),
-          output: cell.outputs.join(''),
-          executionCount: 0
+          code: cell?.source?.join(''),
+          output: cell?.outputs?.join(''),
+          executionCount: 0,
+          type: cell.cell_type as 'code' | 'markdown'
         })
       })
+
+      console.log("cosmicCells", cosmicCells);
 
       setImportNotebookDialogOpen(false);
       const notebookId = await createNotebookHelper(fileName);
@@ -156,7 +158,7 @@ export default function ProjectsPage() {
         console.error("User should not be null for saving notebook.")
       }
       console.log('cosmicCells', cosmicCells);
-      openNotebook(notebookId, fileName);
+      // openNotebook(notebookId, fileName);
     }
 
     const getAllNotebooksByUser = async (userId: string) => {
@@ -243,7 +245,7 @@ export default function ProjectsPage() {
                     Upload a Jupyter notebook file to import it into your workspace.
                   </DialogDescription>
                 </DialogHeader>
-                <FileUpload onFileSelect={handleFileSelect} />
+                <NotebookUpload onFileSelect={handleFileSelect} />
               </DialogContent>
             </Dialog>
             </div>

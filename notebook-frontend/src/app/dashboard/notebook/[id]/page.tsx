@@ -19,6 +19,8 @@ export default function Notebook() {
     setUserId(userId || '');
   }, []);
 
+  //TODO: toast for when kernel is being initialized for the first time.
+
   useEffect(() => {
     if (id) {
       const fetchJobs = async () => {

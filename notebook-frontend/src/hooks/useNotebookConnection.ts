@@ -4,25 +4,10 @@
 import { useCallback, useEffect, useRef } from 'react';
 import useWebSocket, { ReadyState } from 'react-use-websocket';
 import { v4 as uuidv4 } from 'uuid';
-import { NotebookCell, OutputDeployMessage } from '@/app/types';
+
+import { NotebookCell, OutputDeployMessage, NotebookConnectionProps } from '@/app/types';
 import { OutputExecutionMessage, OutputSaveMessage, OutputLoadMessage, OutputPosthogSetupMessage } from '@/app/types';
 import { useToast } from '@/hooks/use-toast';
-
-interface NotebookDetails {
-  notebookId: string
-  userId: string
-  name: string 
-}
-
-interface NotebookConnectionProps {
-  onOutput?: (cellId: string, output: string) => void;
-  onNotebookLoaded?: (cells: NotebookCell[]) => void;
-  onNotebookSaved?: (data: OutputSaveMessage) => void;
-  onError?: (error: string) => void;
-  onNotebookDeployed?: (data: OutputDeployMessage) => void;
-  notebookDetails?: NotebookDetails;
-  onPosthogSetup?: (data: OutputPosthogSetupMessage) => void;
-}
 
 export function useNotebookConnection({
   onOutput,
@@ -83,6 +68,11 @@ export function useNotebookConnection({
       const data = JSON.parse(lastMessage.data);
       let parsedData = null;
       switch (data.type) {
+        case "init":
+          toast({
+            title: "Initializing Kernel. Please wait.",
+            description: "Loading kernel."
+          });
         case 'output':
           parsedData = data as OutputExecutionMessage;
           console.log(`Received output: ${parsedData.output}, type: ${typeof parsedData.type}, cellId: ${parsedData.cellId}`);
