@@ -1,9 +1,72 @@
 // app/types.ts
+export type CellType = 'code' | 'markdown' | 'file';
+
 export interface NotebookCell {
   id: string;
   code: string;
   output: string;
   executionCount: number;
+  type: CellType;
+}
+
+export interface NotebookToolbarProps {
+  name: string;
+  onHandleAddCell: (type: CellType) => void;
+  onHandleSave: (filename: string) => Promise<void>;
+  onHandleLoad: (filename: string) => Promise<void>;
+  onHandleRestartKernel?: () => Promise<void>;
+  isConnected: boolean;
+  allCells: NotebookCell[];
+  onHandleDeploy?: () => Promise<void>;
+}
+
+export interface NotebookStore {
+  cells: NotebookCell[];
+  maxExecutionCount: number;
+  addCell: (type: CellType) => void;
+  updateCellCode: (id: string, code: string) => void;
+  updateCellOutput: (id: string, output: string) => void;
+  deleteCell: (id: string) => void;
+  moveCellUp: (id: string) => void;
+  moveCellDown: (id: string) => void;
+  setCells: (cells: NotebookCell[]) => void;
+}
+
+export interface MarkdownEditorProps {
+  code: string;
+  onCodeChange: (code: string) => void;
+  isMarkdownEditing: boolean;
+}
+
+export interface NotebookCellProps {
+  id: string;
+  code?: string;
+  files?: File[];
+  onFilesChange?: (files: File[]) => void;
+  output: string;
+  executionCount: number;
+  isExecuting: boolean;
+  type: CellType;
+  onCodeChange: (code: string) => void;
+  onExecute: () => void;
+  onDelete: () => void;
+  onMoveUp: () => void;
+  onMoveDown: () => void;
+}
+
+export interface NotebookDetails {
+  notebookId: string
+  userId: string
+  name: string 
+}
+
+export interface NotebookConnectionProps {
+  onOutput?: (cellId: string, output: string) => void;
+  onNotebookLoaded?: (cells: NotebookCell[]) => void;
+  onNotebookSaved?: (data: OutputSaveMessage) => void;
+  onError?: (error: string) => void;
+  onNotebookDeployed?: (data: OutputDeployMessage) => void;
+  notebookDetails?: NotebookDetails;
 }
 
 export interface WebSocketMessage {
@@ -83,4 +146,32 @@ export interface OutputPosthogSetupMessage {
 export interface User {
     id: string;
     email: string;
+}
+
+export interface UserStore {
+  user: User | null;
+  setUser: (user: User | null) => void;
+}
+
+export interface NotebookPageProps {
+  notebookId: string;
+  userId: string;
+  name: string;
+  jobs?: Jobs;
+}
+
+export interface NotebookDetails {
+  notebookId: string
+  userId: string
+  name: string 
+}
+
+export interface NotebookConnectionProps {
+  onOutput?: (cellId: string, output: string) => void;
+  onNotebookLoaded?: (cells: NotebookCell[]) => void;
+  onNotebookSaved?: (data: OutputSaveMessage) => void;
+  onError?: (error: string) => void;
+  onNotebookDeployed?: (data: OutputDeployMessage) => void;
+  notebookDetails?: NotebookDetails;
+  onPosthogSetup?: (data: OutputPosthogSetupMessage) => void;
 }

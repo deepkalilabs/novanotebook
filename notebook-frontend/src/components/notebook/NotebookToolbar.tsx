@@ -1,6 +1,7 @@
 // components/NotebookToolbar.tsx
 'use client';
 
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { PlusCircle } from 'lucide-react';
 import { NotebookCell } from '@/app/types';
@@ -9,17 +10,16 @@ import { SaveNotebookButton } from './toolbar/SaveNotebookButton';
 //import { LoadNotebookButton } from './toolbar/LoadNotebookButton';
 import { DeployButton } from './toolbar/DeployButton';
 import { RestartKernelButton } from './toolbar/RestartKernelButton';
-
-interface NotebookToolbarProps {
-  name: string;
-  onHandleAddCell: () => void;
-  onHandleSave: (filename: string) => Promise<void>;
-  onHandleLoad: (filename: string) => Promise<void>;
-  onHandleRestartKernel?: () => Promise<void>;
-  isConnected: boolean;
-  allCells: NotebookCell[];
-  onHandleDeploy?: () => Promise<void>;
-}
+import { CellType, NotebookToolbarProps } from '@/app/types';
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
 
 //TODO: Add name and description to the toolbar
 export function NotebookToolbar({
@@ -32,6 +32,15 @@ export function NotebookToolbar({
   allCells,
   onHandleDeploy,
 }: NotebookToolbarProps) {
+
+  const [ isAddCellOpen, setIsAddCellOpen ] = useState(false);
+  const [ selectedCellType, setSelectedCellType ] = useState('code');
+
+  const handleAddCell = () => {
+    onHandleAddCell(selectedCellType as CellType);
+    setIsAddCellOpen(false);
+  }
+
   return (
     <div className="flex items-center space-x-2 mb-4">
       <div className="flex items-center gap-6 px-4 py-2 bg-muted rounded-lg text-sm text-muted-foreground">
@@ -52,13 +61,59 @@ export function NotebookToolbar({
         </div>
       </div>
 
-      <Button 
-        onClick={onHandleAddCell}
-        className="gap-2"
-      >
-        <PlusCircle className="h-4 w-4" />
-        Add Cell
-      </Button>
+      <AlertDialog open={isAddCellOpen} onOpenChange={setIsAddCellOpen}>
+        <AlertDialogTrigger asChild>
+          <Button className="gap-2">
+            <PlusCircle className="h-4 w-4" />
+            Add Cell
+          </Button>
+        </AlertDialogTrigger>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Select Cell Type</AlertDialogTitle>
+          </AlertDialogHeader>
+          <RadioGroup 
+            value={selectedCellType} 
+            onValueChange={(value) => setSelectedCellType(value as CellType)}
+            className="grid gap-4"
+          >
+            <div className="flex items-center space-x-2 space-y-0">
+              <RadioGroupItem value="code" id="code" />
+              <Label htmlFor="code" className="flex items-center gap-2 cursor-pointer">
+                <div className="h-4 w-4" />
+                Code Cell
+                <span className="text-sm text-muted-foreground">
+                  - Execute code and see results
+                </span>
+              </Label>
+            </div>
+            <div className="flex items-center space-x-2 space-y-0">
+              <RadioGroupItem value="markdown" id="markdown" />
+              <Label htmlFor="markdown" className="flex items-center gap-2 cursor-pointer">
+                <div className="h-4 w-4" />
+                Markdown Cell
+                <span className="text-sm text-muted-foreground">
+                  - Write formatted text and documentation
+                </span>
+              </Label>
+            </div>
+            <div className="flex items-center space-x-2 space-y-0">
+              <RadioGroupItem value="file" id="file" />
+              <Label htmlFor="file" className="flex items-center gap-2 cursor-pointer">
+                <div className="h-4 w-4" />
+                File Upload Cell
+                <span className="text-sm text-muted-foreground">
+                  - Upload and process files
+                </span>
+              </Label>
+            </div>
+          </RadioGroup>
+          <div className="flex justify-end gap-2 mt-6">
+            <Button variant="outline" onClick={() => setIsAddCellOpen(false)}>Cancel</Button>
+            <Button onClick={handleAddCell}>Add Selected Cell</Button>
+          </div>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <SaveNotebookButton onHandleSave={onHandleSave} />
 

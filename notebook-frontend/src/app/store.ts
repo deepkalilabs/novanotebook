@@ -1,37 +1,19 @@
 // app/store.ts
 import { create } from 'zustand';
 import { v4 as uuidv4 } from 'uuid';
-import { NotebookCell, User } from './types';
-
-interface NotebookStore {
-  cells: NotebookCell[];
-  maxExecutionCount: number;
-  addCell: () => void;
-  updateCellCode: (id: string, code: string) => void;
-  updateCellOutput: (id: string, output: string) => void;
-  deleteCell: (id: string) => void;
-  moveCellUp: (id: string) => void;
-  moveCellDown: (id: string) => void;
-  setCells: (cells: NotebookCell[]) => void;
-}
-
-interface UserStore {
-  user: User | null;
-  setUser: (user: User | null) => void;
-}
-
-
+import { NotebookCell, User, CellType, NotebookStore, NotebookCellProps, UserStore } from './types';
 
 export const useNotebookStore = create<NotebookStore>((set) => ({
   cells: [],
   maxExecutionCount: 0,
   
-  addCell: () => set((state) => ({
+  addCell: (type: CellType = 'code') => set((state) => ({
     cells: [...state.cells, {
       id: uuidv4(),
       code: '',
       output: '',
-      executionCount: 0
+      executionCount: 0,
+      type: type
     }]
   })),
   

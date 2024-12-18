@@ -1,62 +1,69 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-// @ts-nocheck
+import React, { useState } from 'react';
+import { Check, File, Upload } from 'lucide-react';
 
-"use client";
+export const FileUploadEditor = () => {
+  const [uploadedFile, setUploadedFile] = useState<string | null>(null);
 
-import { useEffect } from 'react';
-import { Uppy } from '@uppy/core';
-import { FileInput } from '@uppy/react';
-import { Button } from '@/components/ui/button';
-import '@uppy/core/dist/style.min.css';
-import { FileUploadProps } from '@/app/types';
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    try {
+      const file = e.target.files?.[0];
+      if (!file) return;
 
-const uppy = new Uppy({
-  restrictions: {
-    maxNumberOfFiles: 1,
-    allowedFileTypes: ['.py', '.ipynb']
-  }
-});
+      const formData = new FormData();
+      formData.append('file', file);
 
-export default function FileUpload({ onFileSelect }: FileUploadProps) {
-  useEffect(() => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const handleFileSelect = (file: any) => {
-      const reader = new FileReader();
-      reader.onload = () => {
-        const content = reader.result as string;
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        onFileSelect(file.name, JSON.parse(content) as any);
-      };
-      reader.readAsText(file.data);
-    };
+      const response = await fetch('/api/upload', {
+        method: "POST",
+        body: formData,
+      });
 
-    uppy.on('file-added', handleFileSelect);
-
-    return () => {
-      uppy.off('file-added', handleFileSelect);
-    };
-  }, [onFileSelect]);
+      const { filePath } = await response.json();
+      setUploadedFile(filePath);
+    } catch (error) {
+      console.error("Error uploading files: ", error);
+    }
+  };
 
   return (
-    <div>
-      <FileInput
-        uppy={uppy}
-        pretty={false}
-        inputName="files"
-        locale={{
-          strings: {
-            chooseFiles: 'Select Python File',
-            noFiles: 'No Python file selected',
-          }        
-        }}
+    <div className="p-4 space-y-3">
+      <input
+        type="file"
+        onChange={handleFileSelect}
+        className="hidden"
+        id="file-upload"
+        accept=".csv,.json"
+      />
+      <label
+        htmlFor="file-upload"
+        className="flex items-center justify-center w-full h-16 px-4 transition bg-muted border-2 border-dashed rounded-md appearance-none cursor-pointer hover:border-muted-foreground focus:outline-none"
       >
-        {({ openPicker }) => (
-          <Button onClick={openPicker}>
-            Select Python File
-          </Button>
-        )}
-      </FileInput>
+        <div className="flex flex-col items-center space-y-2">
+          <Upload className="w-6 h-6" />
+          <span className="text-sm">Drop files or click to upload</span>
+          {!uploadedFile && (
+            <span className="text-sm text-muted-foreground">No file chosen</span>
+          )}
+        </div>
+      </label>
+
+      {uploadedFile && (
+        <div className="flex items-center space-x-3 p-3 bg-slate-50 rounded-lg">
+          <div className="flex items-center justify-center w-8 h-8 rounded-full bg-green-100">
+            <Check className="w-4 h-4 text-green-600" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center space-x-2">
+              <File className="w-4 h-4 text-slate-400" />
+              <p className="text-sm font-medium truncate">
+                {uploadedFile.split('/').pop()}
+              </p>
+            </div>
+            <p className="text-xs text-slate-500 mt-0.5 truncate">
+              {uploadedFile.split('/').slice(1).join('/')}
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
-}
+};
