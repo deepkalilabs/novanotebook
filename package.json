@@ -1,8 +1,0 @@
-{
-  "dependencies": {
-    "@tailwindcss/typography": "^0.5.15"
-  },
-  "devDependencies": {
-    "tailwindcss": "^3.4.16"
-  }
-}

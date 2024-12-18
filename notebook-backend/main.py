@@ -6,7 +6,7 @@ from helpers.supabase import job_status
 from helpers.types import OutputExecutionMessage, OutputSaveMessage, OutputLoadMessage, OutputGenerateLambdaMessage, OutputPosthogSetupMessage
 from uuid import UUID
 from helpers.notebook import notebook
-from helpers.aws.s3.s3 import S3Helper
+from connectors.helpers.aws.s3.helpers import S3Helper
 import logging
 
 logging.basicConfig(level=logging.INFO)
@@ -45,7 +45,7 @@ async def websocket_endpoint(websocket: WebSocket, session_id: str, notebook_id:
 
             data = await websocket.receive_json()
             
-            if data['type'] == 'execute':                    
+            if data['type'] == 'execute':
                 code = data['code']
                 output = await nb.execute_code(code=code)
 
@@ -103,6 +103,11 @@ async def websocket_endpoint(websocket: WebSocket, session_id: str, notebook_id:
 
                 if response['ResponseMetadata']['HTTPStatusCode'] != 200:
                     raise ValueError("Failed to save credentials")
+                
+                # Handle dependencies
+                # TODO: Handle dependencies better.
+                posthog_dependencies = await nb.execute_code(code='!pip install pydantic requests')
+                print(f"posthog_dependencies: {posthog_dependencies}")
 
                 #Task 2: Setup PostHog in the notebook
                 # Setup PostHog in the notebook

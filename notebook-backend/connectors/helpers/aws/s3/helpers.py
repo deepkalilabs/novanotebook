@@ -95,6 +95,22 @@ class S3Helper:
                 }
             }
         }
+
+        TODO: Migrate to DB
+
+        user ->
+          user_id 
+
+        notebook ->
+          user_id , notebook_id, .... 
+        
+        connector ->
+          user_id , notebook_id , connector_type, credentials: Json
+          1, 1, posthog, {"api_key": "sf_123...", "base_url": "https://app.snowflake.com"}
+
+        connector.notebook_id == notebook.id
+        connector.user_id == user.id
+        
         """
         if not existing_data:
             raise ValueError("Existing data is required")

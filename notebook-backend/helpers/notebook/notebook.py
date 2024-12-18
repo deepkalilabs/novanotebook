@@ -139,13 +139,12 @@ class NotebookUtils():
         return relevant_env_path
         
     def initialize_relevant_env_path(self):
-
+        # TODO: Block cell execution if env is not initialized.
         if not self.relevant_env_path:
             sh.conda(
                 "create", "-n", self.env_name, "python=3.9", "ipykernel",
                 _out=sys.stdout, _err=sys.stderr, force=True
             )
-            self.relevant_env_path = self.relevant_env_path
             
             relevant_env_path_python = os.path.join(self.relevant_env_path, "bin", "python3")
                 
