@@ -36,10 +36,9 @@ export function useNotebookConnection({
   const { toast } = useToast();
   const sessionId = useRef(uuidv4()).current;
   const notebookId = notebookDetails?.notebookId
-  const userId = notebookDetails?.notebookId
-  const notebookName = notebookDetails?.name
+ 
 
-  console.log("details", notebookId, userId, notebookName)
+  console.log("details", notebookId)
 
   const setupSocketUrl = useCallback(() => {
     const socketBaseURL = process.env.NODE_ENV === 'development' ? '0.0.0.0' : process.env.NEXT_PUBLIC_AWS_EC2_IP;
