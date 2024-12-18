@@ -1,7 +1,7 @@
 // app/store.ts
 import { create } from 'zustand';
 import { v4 as uuidv4 } from 'uuid';
-import { NotebookCell } from './types';
+import { NotebookCell, User } from './types';
 
 interface NotebookStore {
   cells: NotebookCell[];
@@ -14,6 +14,13 @@ interface NotebookStore {
   moveCellDown: (id: string) => void;
   setCells: (cells: NotebookCell[]) => void;
 }
+
+interface UserStore {
+  user: User | null;
+  setUser: (user: User | null) => void;
+}
+
+
 
 export const useNotebookStore = create<NotebookStore>((set) => ({
   cells: [],
@@ -64,4 +71,10 @@ export const useNotebookStore = create<NotebookStore>((set) => ({
   }),
   
   setCells: (cells) => set({ cells })
+}));
+
+
+export const useUserStore = create<UserStore>((set) => ({
+  user: null,
+  setUser: (user) => set({ user })
 }));

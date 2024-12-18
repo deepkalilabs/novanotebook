@@ -3,9 +3,14 @@ from fastapi.middleware.cors import CORSMiddleware
 import os
 from helpers.lambda_generator import lambda_generator
 from helpers.supabase import job_status
-from helpers.types import OutputExecutionMessage, OutputSaveMessage, OutputLoadMessage, OutputGenerateLambdaMessage
+from helpers.types import OutputExecutionMessage, OutputSaveMessage, OutputLoadMessage, OutputGenerateLambdaMessage, OutputPosthogSetupMessage
 from uuid import UUID
 from helpers.notebook import notebook
+from helpers.aws.s3.s3 import S3Helper
+import logging
+
+logging.basicConfig(level=logging.INFO)
+
 app = FastAPI()
 
 # Enable CORS for frontend communication
@@ -59,6 +64,65 @@ async def websocket_endpoint(websocket: WebSocket, session_id: str, notebook_id:
                 # print("response", response)
                 output = OutputLoadMessage(type='notebook_loaded', success=response['status'] == 'success', message=response['message'], cells=response['notebook'])
                 await websocket.send_json(output.model_dump())
+
+            elif data['type'] == 'posthog_setup':
+                logging.info("Setting up PostHog...")
+                logging.info("Task 1: Save the credentials to S3")
+                logging.info("Task 2: Setup PostHog in the notebook")
+                user_id = data.get('user_id')
+                api_key = data.get('api_key')
+                base_url = data.get('base_url')
+
+                logging.info(f"data: {data}")
+
+                aws_credentials = {
+                    "aws_access_key_id": os.environ.get('AWS_ACCESS_KEY_ID'),
+                    "aws_secret_access_key": os.environ.get('AWS_SECRET_ACCESS_KEY'),
+                    "region_name": os.environ.get('AWS_DEFAULT_REGION')
+                }
+
+                # Format the credentials in the new structure
+                posthog_credentials = {
+                    "posthog": {
+                        "credentials": {
+                            "api_key": api_key,
+                            "base_url": base_url
+                        }
+                    }
+                }
+                print(f"posthog_credentials: {posthog_credentials['posthog']['credentials']}")
+
+                logging.info("Task 1: Saving credentials to S3")
+                # Initialize S3Helper
+                s3_helper = S3Helper(credentials=aws_credentials)
+                await s3_helper.init_s3(user_id)  # This initializes the S3 client
+
+                # Now save the credentials
+                response = s3_helper.save_or_update_credentials(user_id, posthog_credentials)
+                logging.info(f"response: {response}")
+
+                if response['ResponseMetadata']['HTTPStatusCode'] != 200:
+                    raise ValueError("Failed to save credentials")
+
+                #Task 2: Setup PostHog in the notebook
+                # Setup PostHog in the notebook
+                posthog_setup_code = f"""
+                from connectors.services.posthog.posthog_service import PostHogService
+                from IPython import get_ipython
+                # Initialize PostHog service
+                posthog_service = PostHogService({posthog_credentials['posthog']['credentials']})
+                # Get IPython instance and inject into namespace
+                ipython = get_ipython()
+                ipython.user_ns['posthog_service'] = posthog_service
+                ipython.user_ns['posthog_client'] = posthog_service.client
+                ipython.user_ns['posthog_adapter'] = posthog_service.adapter
+                """
+                logging.info(f"Injecting PostHog setup code into the notebook: {posthog_setup_code}")
+                output = await nb.execute_code(code=posthog_setup_code)
+                logging.info(f"output: {output}")
+
+                response = OutputPosthogSetupMessage(type='posthog_setup', success=True, message="PostHog setup complete")
+                await websocket.send_json(response.model_dump())
                 
             elif data['type'] == 'deploy_lambda':
                 # TODO: Better dependency management here.
@@ -133,5 +197,4 @@ if __name__ == "__main__":
         log_level="info",
         access_log=True
     )
-
 

@@ -35,3 +35,8 @@ class SupabaseJobDetails(BaseModel):
     
 class SupabaseJobList(BaseModel):
     jobs: list[SupabaseJobDetails]
+
+class OutputPosthogSetupMessage(BaseModel):
+    type: str
+    success: bool
+    message: str

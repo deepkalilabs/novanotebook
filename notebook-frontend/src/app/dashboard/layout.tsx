@@ -1,12 +1,13 @@
 "use client"
 
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 import { Home, Settings, Activity } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Sidebar } from "@/components/ui/sidebar"
 import { supabase } from '@/lib/supabase';
 import { useRouter } from "next/navigation"
 import { useEffect } from "react"
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
+import { useUserStore } from "@/app/store"
 
 
 const sidebarNavItems = [
@@ -58,15 +59,29 @@ export default function DashboardLayout({
   children: React.ReactNode
 }) {
   const router = useRouter();
+  const { setUser } = useUserStore();
 
   useEffect(() => {
     const checkAuth = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
+      const { data: { user }, error } = await supabase.auth.getUser();
+
+      if (error) {
+        console.error('Error getting user:', error);
+        setUser(null);
         router.push('/auth/signin');
+        return;
+      }
+
+      if (!user) {
+        setUser(null);
+        router.push('/auth/signin');
+        return;
       }
       //Store locally for dashboard
-      localStorage.setItem('user', JSON.stringify(user));
+      setUser({
+        id: user?.id || '',
+        email: user?.email || ''
+      });
     };
     
     checkAuth();

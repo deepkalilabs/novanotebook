@@ -5,8 +5,9 @@ import { useCallback, useEffect, useRef } from 'react';
 import useWebSocket, { ReadyState } from 'react-use-websocket';
 import { v4 as uuidv4 } from 'uuid';
 import { NotebookCell, OutputDeployMessage } from '@/app/types';
-import { OutputExecutionMessage, OutputSaveMessage, OutputLoadMessage } from '@/app/types';
+import { OutputExecutionMessage, OutputSaveMessage, OutputLoadMessage, OutputPosthogSetupMessage } from '@/app/types';
 import { useToast } from '@/hooks/use-toast';
+
 interface NotebookDetails {
   notebookId: string
   userId: string
@@ -20,6 +21,7 @@ interface NotebookConnectionProps {
   onError?: (error: string) => void;
   onNotebookDeployed?: (data: OutputDeployMessage) => void;
   notebookDetails?: NotebookDetails;
+  onPosthogSetup?: (data: OutputPosthogSetupMessage) => void;
 }
 
 export function useNotebookConnection({
@@ -28,31 +30,25 @@ export function useNotebookConnection({
   onNotebookSaved,
   onNotebookDeployed,
   onError,
-  notebookDetails
+  notebookDetails,
+  onPosthogSetup
+
 }: NotebookConnectionProps) {
   const { toast } = useToast();
   const sessionId = useRef(uuidv4()).current;
   const notebookId = notebookDetails?.notebookId
-  const userId = notebookDetails?.notebookId
-  const notebookName = notebookDetails?.name
+  console.log("details", notebookId)
 
-  console.log("details", notebookId, userId, notebookName)
   const setupSocketUrl = useCallback(() => {
-
     const socketBaseURL = process.env.NODE_ENV === 'development' ? '0.0.0.0' : process.env.NEXT_PUBLIC_AWS_EC2_IP;
 
-    let socketUrl = '';
+    const socketUrl = process.env.NODE_ENV === 'development'
+    ? `ws://0.0.0.0:8000/ws/${sessionId}/${notebookId}`
+    : `wss://${socketBaseURL}/ws/${sessionId}/${notebookId}`;
 
-    if (process.env.NODE_ENV === 'development') {
-      socketUrl = `ws://0.0.0.0:8000/ws/${sessionId}/${notebookId}`;
-      console.log(`Socket URL: ${socketUrl}, sessionId: ${sessionId}, socketURL: ${socketBaseURL}`);
-    } else {
-      socketUrl = `wss://${socketBaseURL}/ws/${sessionId}/${notebookId}`;
-      console.log(`Socket URL: ${socketUrl}, sessionId: ${sessionId}`);
-    }
-
+    console.log("socketUrl", socketUrl)
     return socketUrl;
-  }, []);
+  }, [sessionId, notebookId]);
 
   const socketUrl = setupSocketUrl();
 
@@ -106,6 +102,11 @@ export function useNotebookConnection({
           parsedData = data as OutputDeployMessage;
           console.log(`Received lambda_generated: ${parsedData.type}, success: ${parsedData.success}, message: ${parsedData.message}`);
           onNotebookDeployed?.(parsedData);
+          break;
+        case 'posthog_setup':
+          parsedData = data as OutputPosthogSetupMessage;
+          console.log(`Received posthog_setup: ${parsedData.type}, success: ${parsedData.success}, message: ${parsedData.message}`);
+          onPosthogSetup?.(parsedData);
           break;
         case 'error':
           onError?.(data.message);
@@ -161,12 +162,22 @@ export function useNotebookConnection({
     }));
   }, [sendMessage]);
 
+  const posthogSetup = useCallback((userId: string, apiKey: string, baseUrl: string) => {
+    sendMessage(JSON.stringify({
+      type: 'posthog_setup',
+      user_id: userId,
+      api_key: apiKey,
+      base_url: baseUrl,
+    }));
+  }, [sendMessage]);
+
   return {
     executeCode,
     saveNotebook,
     loadNotebook,
     restartKernel,
     deployCode,
+    posthogSetup,
     isConnected: readyState === ReadyState.OPEN,
     connectionStatus: {
       [ReadyState.CONNECTING]: 'Connecting',

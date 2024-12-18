@@ -1,22 +1,17 @@
 "use client";
 import { useEffect, useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
-//import { ToastAction } from "@/components/ui/toast"
+import {  Activity, Brain, BookOpen, Database } from 'lucide-react'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Separator } from '@/components/ui/separator';
 import { useNotebookStore } from '@/app/store';
 import { useNotebookConnection } from '@/hooks/useNotebookConnection';
 import { NotebookToolbar } from '@/components/notebook/NotebookToolbar';
 import { NotebookCell } from '@/components/notebook/NotebookCell';
 import { Jobs, OutputDeployMessage } from '@/app/types';
 import DeploymentDialog from '@/components/notebook/NotebookDeploy';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { SourcesTab } from '@/components/notebook/connectors/Sources';
+import { JobsPage } from '@/components/notebook/jobs/JobsPage';
 
 interface NotebookPageProps {
   notebookId: string;
@@ -37,7 +32,8 @@ export default function NotebookPage({ notebookId, userId, name, jobs }: Noteboo
     restartKernel,
     deployCode,
     isConnected,
-    connectionStatus
+    connectionStatus,
+    posthogSetup
   } = useNotebookConnection({
     onOutput: updateCellOutput,
     onNotebookLoaded: (cells) => {
@@ -123,9 +119,21 @@ export default function NotebookPage({ notebookId, userId, name, jobs }: Noteboo
     <div className="flex min-h-screen">
       <div className="container mx-auto py-8">
         <Tabs defaultValue="notebook" className="w-full">
-          <TabsList className="grid w-[400px] grid-cols-2 mb-4">
-            <TabsTrigger value="notebook">Notebook</TabsTrigger>
+          <TabsList className="grid w-[600px] grid-cols-4 mb-5">
+            <TabsTrigger value="notebook">
+              <BookOpen className="w-4 h-4 mr-2" />
+              Notebook
+            </TabsTrigger>
+            <TabsTrigger value="datasources">
+              <Database className="w-4 h-4 mr-2" />
+              Data Sources
+            </TabsTrigger>
+            <TabsTrigger value="context">
+              <Brain className="w-4 h-4 mr-2" />
+              Context
+            </TabsTrigger>
             <TabsTrigger value="jobs">
+              <Activity className="w-4 h-4 mr-2" />
               Jobs {jobs?.jobs?.length ? `(${jobs.jobs.length})` : '...'}
             </TabsTrigger>
           </TabsList>
@@ -139,7 +147,7 @@ export default function NotebookPage({ notebookId, userId, name, jobs }: Noteboo
               />
             )}
 
-            <div className="sticky top-0 z-50 bg-background py-2 border-b">
+            <div className="sticky top-0 z-50 bg-background py-2">
               <NotebookToolbar
                 name={name}
                 onHandleAddCell={addCell}
@@ -150,6 +158,13 @@ export default function NotebookPage({ notebookId, userId, name, jobs }: Noteboo
                 allCells={cells}
                 onHandleDeploy={handleDeploy}
               />
+            </div>
+
+            <Separator className="my-2" />
+            <br/>
+
+            <div className="space-y-6">
+              <SourcesTab globalSources={[]} posthogSetup={posthogSetup} />
             </div>
 
             <div className="space-y-6">
@@ -176,54 +191,8 @@ export default function NotebookPage({ notebookId, userId, name, jobs }: Noteboo
               )} 
             </div>
           </TabsContent>
-
           <TabsContent value="jobs">
-            <div className="rounded-md border">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Request ID</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Created</TableHead>
-                    <TableHead>Completed</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {!jobs?.jobs ? (
-                    <TableRow>
-                      <TableCell colSpan={4} className="text-center h-24 text-muted-foreground">
-                        Loading jobs...
-                      </TableCell>
-                    </TableRow>
-                  ) : jobs.jobs.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={4} className="text-center h-24 text-muted-foreground">
-                        No jobs found.
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    [...jobs.jobs]
-                      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-                      .map((job) => (
-                        <TableRow key={job.request_id}>
-                          <TableCell className="font-mono">{job.request_id}</TableCell>
-                          <TableCell>
-                            <span className={`px-2 py-1 rounded-full text-xs ${
-                              job.completed ? 'bg-green-100 text-green-800' : 
-                              job.error ? 'bg-red-100 text-red-800' : 
-                              'bg-yellow-100 text-yellow-800'
-                            }`}>
-                              {job.completed ? 'Completed' : job.error ? 'Failed' : 'Running'}
-                            </span>
-                          </TableCell>
-                          <TableCell>{new Date(job.created_at).toLocaleString()}</TableCell>
-                          <TableCell>{job.completed_at ? new Date(job.completed_at).toLocaleString() : '-'}</TableCell>
-                        </TableRow>
-                      ))
-                  )}
-                </TableBody>
-              </Table>
-            </div>
+            <JobsPage jobs={jobs} />
           </TabsContent>
         </Tabs>
       </div>
