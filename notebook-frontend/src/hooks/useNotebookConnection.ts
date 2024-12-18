@@ -4,8 +4,8 @@
 import { useCallback, useEffect, useRef } from 'react';
 import useWebSocket, { ReadyState } from 'react-use-websocket';
 import { v4 as uuidv4 } from 'uuid';
-import { NotebookCell, OutputDeployMessage, OutputPosthogSetupMessage } from '@/app/types';
-import { OutputExecutionMessage, OutputSaveMessage, OutputLoadMessage } from '@/app/types';
+import { NotebookCell, OutputDeployMessage } from '@/app/types';
+import { OutputExecutionMessage, OutputSaveMessage, OutputLoadMessage, OutputPosthogSetupMessage } from '@/app/types';
 import { useToast } from '@/hooks/use-toast';
 
 interface NotebookDetails {
@@ -29,31 +29,26 @@ export function useNotebookConnection({
   onNotebookLoaded,
   onNotebookSaved,
   onNotebookDeployed,
-  onPosthogSetup,
   onError,
-  notebookDetails
+  notebookDetails,
+  onPosthogSetup
 }: NotebookConnectionProps) {
   const { toast } = useToast();
   const sessionId = useRef(uuidv4()).current;
   const notebookId = notebookDetails?.notebookId
-  const userId = notebookDetails?.userId
+  const userId = notebookDetails?.notebookId
   const notebookName = notebookDetails?.name
 
   console.log("details", notebookId, userId, notebookName)
 
   const setupSocketUrl = useCallback(() => {
     const socketBaseURL = process.env.NODE_ENV === 'development' ? '0.0.0.0' : process.env.NEXT_PUBLIC_AWS_EC2_IP;
-    
-    if (!sessionId || !notebookId) {
-        console.error('Missing sessionId or notebookId');
-        return '';
-    }
 
     const socketUrl = process.env.NODE_ENV === 'development'
-        ? `ws://0.0.0.0:8000/ws/${sessionId}/${notebookId}`
-        : `wss://${socketBaseURL}/ws/${sessionId}/${notebookId}`;
-        
-    console.log(`Socket URL: ${socketUrl}`);
+    ? `ws://0.0.0.0:8000/ws/${sessionId}/${notebookId}`
+    : `wss://${socketBaseURL}/ws/${sessionId}/${notebookId}`;
+
+    console.log("socketUrl", socketUrl)
     return socketUrl;
   }, [sessionId, notebookId]);
 
@@ -159,19 +154,20 @@ export function useNotebookConnection({
   }, [sendMessage]);
 
   const deployCode = useCallback((cells: NotebookCell[], user_id: string, name: string, notebook_id: string) => {
-    console.log("deployCode", cells, user_id, name, notebook_id)
     // TODO: Change the default name
     sendMessage(JSON.stringify({
       type: 'deploy_lambda',
-      allCode: cells.map((cell) => cell.code).join('\n'),
-      notebookName: "testground.ipynb"
+      all_code: cells.map((cell) => cell.code).join('\n'),
+      user_id: user_id,
+      notebook_name: name,
+      notebook_id: notebook_id
     }));
   }, [sendMessage]);
 
-  const posthogSetup = useCallback((user_id: string, apiKey: string, baseUrl: string) => {
+  const posthogSetup = useCallback((userId: string, apiKey: string, baseUrl: string) => {
     sendMessage(JSON.stringify({
       type: 'posthog_setup',
-      user_id: user_id,
+      user_id: userId,
       api_key: apiKey,
       base_url: baseUrl
     }));

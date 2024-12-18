@@ -115,7 +115,6 @@ async def websocket_endpoint(websocket: WebSocket, session_id: str, notebook_id:
                 base_url = data.get('base_url')
 
                 logging.info(f"data: {data}")
-                logging.info(f"user_id: {user_id}, api_key: {api_key}, base_url: {base_url}")
 
                 aws_credentials = {
                     "aws_access_key_id": os.environ.get('AWS_ACCESS_KEY_ID'),

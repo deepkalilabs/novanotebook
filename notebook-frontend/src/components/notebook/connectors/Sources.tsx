@@ -9,7 +9,7 @@ interface SourcesTabProps {
         type: string;
         status: string;
     }[];
-    posthogSetup: (user_id: string, apiKey: string, baseUrl: string) => void;
+    posthogSetup: (userId: string, apiKey: string, baseUrl: string) => void;
 }   
 
 

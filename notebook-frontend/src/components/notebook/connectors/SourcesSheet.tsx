@@ -13,7 +13,7 @@ interface DataSource {
 }
 
 interface SourcesSheetProps {
-  posthogSetup: (user_id: string, apiKey: string, baseUrl: string) => void;
+  posthogSetup: (userId: string, apiKey: string, baseUrl: string) => void;
 }
 
 export function SourcesSheet({ posthogSetup }: SourcesSheetProps) {

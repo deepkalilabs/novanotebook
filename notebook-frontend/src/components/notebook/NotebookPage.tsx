@@ -12,6 +12,7 @@ import { Jobs, OutputDeployMessage } from '@/app/types';
 import DeploymentDialog from '@/components/notebook/NotebookDeploy';
 import { SourcesTab } from '@/components/notebook/connectors/Sources';
 import { JobsPage } from '@/components/notebook/jobs/JobsPage';
+
 interface NotebookPageProps {
   notebookId: string;
   userId: string;
