@@ -169,7 +169,7 @@ export function useNotebookConnection({
       type: 'posthog_setup',
       user_id: userId,
       api_key: apiKey,
-      base_url: baseUrl
+      base_url: baseUrl,
     }));
   }, [sendMessage]);
 
