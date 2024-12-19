@@ -1,7 +1,7 @@
 # posthog_adapter.py
 # Purpose: Adapts the PostHog client raw data to a format that can be used by the services.
 
-from connectors.sources.posthog.posthog_client import PostHogClient
+from connectors.sources.posthog.client import PostHogClient
 
 class PostHogAdapter:
     def __init__(self, client: PostHogClient):
