@@ -78,8 +78,8 @@ def create_connector_credentials(user_id: str, notebook_id: str, connector_type:
         }
     
     try:
-        response = supabase.table('connect_credentials') \
-            .insert({
+        response = supabase.table('connector_credentials') \
+            .upsert({
                 'user_id': user_id,
                 'notebook_id': notebook_id,
                 'connector_type': connector_type,
