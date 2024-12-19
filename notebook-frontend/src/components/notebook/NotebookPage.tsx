@@ -16,7 +16,7 @@ import { JobsPage } from '@/components/notebook/jobs/JobsPage';
 
 export default function NotebookPage({ notebookId, userId, name, jobs }: NotebookPageProps) {
   const { toast } = useToast();
-  const { cells, addCell, updateCellCode, updateCellOutput, deleteCell, moveCellUp, moveCellDown, setCells } = useNotebookStore();
+  const { cells, addCell, updateCellCode, updateCellType,updateCellOutput, deleteCell, moveCellUp, moveCellDown, setCells } = useNotebookStore();
   const [ isDeploying, setIsDeploying ] = useState(false);
   const [ deploymentData, setDeploymentData] = useState<OutputDeployMessage>({} as OutputDeployMessage);
   const {
@@ -121,24 +121,30 @@ export default function NotebookPage({ notebookId, userId, name, jobs }: Noteboo
     <div className="flex min-h-screen">
       <div className="container mx-auto py-8">
         <Tabs defaultValue="notebook" className="w-full">
-          <TabsList className="grid w-[600px] grid-cols-4 mb-5">
-            <TabsTrigger value="notebook">
-              <BookOpen className="w-4 h-4 mr-2" />
-              Notebook
-            </TabsTrigger>
-            <TabsTrigger value="datasources">
-              <Database className="w-4 h-4 mr-2" />
-              Data Sources
-            </TabsTrigger>
-            <TabsTrigger value="context">
-              <Brain className="w-4 h-4 mr-2" />
-              Context
-            </TabsTrigger>
-            <TabsTrigger value="jobs">
-              <Activity className="w-4 h-4 mr-2" />
-              Jobs {jobs?.jobs?.length ? `(${jobs.jobs.length})` : '...'}
-            </TabsTrigger>
-          </TabsList>
+          <div className="flex flex-row">
+            <TabsList className="flex space-x-4 mb-5">
+              <TabsTrigger value="notebook" className="flex-1">
+                <BookOpen className="w-4 h-4 mr-2" />
+                Notebook
+              </TabsTrigger>
+              <TabsTrigger value="datasources" className="flex-1">
+                <Database className="w-4 h-4 mr-2" />
+                Data Sources
+              </TabsTrigger>
+              <TabsTrigger value="context" className="flex-1">
+                <Brain className="w-4 h-4 mr-2" />
+                Context
+              </TabsTrigger>
+              <TabsTrigger value="jobs" className="flex-1">
+                <Activity className="w-4 h-4 mr-2" />
+                Jobs {jobs?.jobs?.length ? `(${jobs.jobs.length})` : '...'}
+              </TabsTrigger>
+            </TabsList>
+            <div className="flex flex-1 justify-end">
+              <SourcesTab globalSources={[]} posthogSetup={posthogSetup} />
+            </div>
+          </div>
+
 
           <TabsContent value="notebook">
             { isDeploying && (
@@ -165,12 +171,8 @@ export default function NotebookPage({ notebookId, userId, name, jobs }: Noteboo
               />
             </div>
 
-            <Separator className="my-2" />
+            <Separator className="my-0" />
             <br/>
-
-            <div className="space-y-6">
-              <SourcesTab globalSources={[]} posthogSetup={posthogSetup} />
-            </div>
 
             <div className="space-y-6">
               {cells.map((cell) => (
@@ -182,6 +184,7 @@ export default function NotebookPage({ notebookId, userId, name, jobs }: Noteboo
                   type={cell.type}
                   executionCount={cell.executionCount}
                   isExecuting={false}
+                  onTypeChange={(type: CellType) => updateCellType(cell.id, type)}
                   onCodeChange={(code) => updateCellCode(cell.id, code)}
                   onExecute={() => handleExecute(cell.id)}
                   onDelete={() => deleteCell(cell.id)}

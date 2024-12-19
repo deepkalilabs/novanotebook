@@ -16,36 +16,36 @@ interface SourcesTabProps {
 
 export function SourcesTab({ globalSources, posthogSetup }: SourcesTabProps) {
   console.log(globalSources);
-    const g = [
-        {
-          name: 'PostHog Production',
-          type: 'posthog',
-          status: 'connected'
-        },
-        {
-          name: 'OpenAI',
-          type: 'llm',
-          status: 'connected'
-        },
-        {
-          name: 'Customer Database',
-          type: 'postgresql',
-          status: 'connected'
-        }
-      ];
+    // const g = [
+    //     {
+    //       name: 'PostHog Production',
+    //       type: 'posthog',
+    //       status: 'connected'
+    //     },
+    //     {
+    //       name: 'OpenAI',
+    //       type: 'llm',
+    //       status: 'connected'
+    //     },
+    //     {
+    //       name: 'Customer Database',
+    //       type: 'postgresql',
+    //       status: 'connected'
+    //     }
+    //   ];
 
   return (
     <div className="flex items-center space-x-4">
-        <Card className="mb-4">
-            <CardContent className="py-3">
-                <div className="flex items-center space-x-4">
-                    <span className="text-sm text-muted-foreground">Global Data Sources:</span>
+        <Card className="mb-0">
+            <CardContent className="py-0">
+                <div className="flex items-center space-x-3">
+                    {/* <span className="text-xs text-muted-foreground">Global Data Sources:</span>
                     {g.map(source => (
-                        <Badge key={source.name} variant="secondary">
-                            <Database className="w-3 h-3 mr-1" />
+                        <Badge key={source.name} variant="secondary" className="text-xs">
+                            <Database className="w-2 h-2 mr-1" />
                             {source.name}
                         </Badge>
-                    ))}
+                    ))} */}
                     <SourcesSheet posthogSetup={posthogSetup} />
                 </div>
             </CardContent>
