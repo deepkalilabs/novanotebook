@@ -25,6 +25,7 @@ export interface NotebookStore {
   maxExecutionCount: number;
   addCell: (type: CellType) => void;
   updateCellCode: (id: string, code: string) => void;
+  updateCellType: (id: string, type: CellType) => void;
   updateCellOutput: (id: string, output: string) => void;
   deleteCell: (id: string) => void;
   moveCellUp: (id: string) => void;
@@ -48,6 +49,7 @@ export interface NotebookCellProps {
   isExecuting: boolean;
   type: CellType;
   onCodeChange: (code: string) => void;
+  onTypeChange: (type: CellType) => void;
   onExecute: () => void;
   onDelete: () => void;
   onMoveUp: () => void;

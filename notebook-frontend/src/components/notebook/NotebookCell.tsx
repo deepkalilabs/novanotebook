@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
-import { Loader2, ChevronUp, ChevronDown, Trash2, Upload } from 'lucide-react';
+import { Loader2, ChevronUp, ChevronDown, Trash2, Upload, FileText, FileCode } from 'lucide-react';
 import { NotebookCellProps } from '@/app/types';
 import { CodeEditor } from '@/components/CodeEditor';
 import { MarkdownEditor } from '@/components/MarkdownEditor';
@@ -22,6 +22,7 @@ export function NotebookCell({
   executionCount,
   isExecuting,
   onCodeChange,
+  onTypeChange,
   onFilesChange,
   onExecute,
   onDelete,
@@ -115,6 +116,13 @@ export function NotebookCell({
               onClick={onDelete}
             >
               <Trash2 className="h-4 w-4" />
+            </Button>
+            <Button
+              size="sm"
+              variant="default"
+              onClick={() => onTypeChange(type == 'markdown' ? 'code' : 'markdown')}
+            >
+              {type === 'markdown' ? <FileText className="h-4 w-4" /> : <FileCode className="h-4 w-4" />}
             </Button>
           </div>
         </div>

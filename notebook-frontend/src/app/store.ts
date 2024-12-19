@@ -22,6 +22,12 @@ export const useNotebookStore = create<NotebookStore>((set) => ({
       cell.id === id ? { ...cell, code } : cell
     )
   })),
+
+  updateCellType: (id, type) => set((state) => ({
+    cells: state.cells.map(cell => 
+      cell.id === id ? { ...cell, type } : cell
+    )
+  })),
   
   updateCellOutput: (id, output) => set((state) => ({
     cells: state.cells.map(cell =>
