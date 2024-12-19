@@ -1,7 +1,7 @@
 # posthog_service.py
 # Purpose: Provides a service layer for the PostHog data. This is package that will be imported by the notebook app.
-from connectors.adapters.posthog.posthog_adapter import PostHogAdapter
-from connectors.sources.posthog.posthog_client import PostHogClient
+from connectors.adapters.posthog.adapter import PostHogAdapter
+from connectors.sources.posthog.client import PostHogClient
 class PostHogService:
     def __init__(self, credentials: dict):
         self.client = PostHogClient(credentials)
