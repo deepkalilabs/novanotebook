@@ -1,8 +1,7 @@
 "use client";
 import { useEffect, useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import {  Activity, Brain, BookOpen, Database } from 'lucide-react'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Tabs, TabsContent } from "@/components/ui/tabs"
 import { Separator } from '@/components/ui/separator';
 import { useNotebookStore } from '@/app/store';
 import { useNotebookConnection } from '@/hooks/useNotebookConnection';
@@ -11,10 +10,9 @@ import { NotebookCell } from '@/components/notebook/NotebookCell';
 import { OutputDeployMessage, CellType, NotebookPageProps } from '@/app/types';
 import DeploymentDialog from '@/components/notebook/NotebookDeploy';
 import { SourcesTab } from '@/components/notebook/connectors/Sources';
-import { JobsPage } from '@/components/notebook/jobs/JobsPage';
 
 
-export default function NotebookPage({ notebookId, userId, name, jobs }: NotebookPageProps) {
+export default function NotebookPage({ notebookId, userId, name }: NotebookPageProps) {
   const { toast } = useToast();
   const { cells, addCell, updateCellCode, updateCellOutput, deleteCell, moveCellUp, moveCellDown, setCells } = useNotebookStore();
   const [ isDeploying, setIsDeploying ] = useState(false);
@@ -123,24 +121,6 @@ export default function NotebookPage({ notebookId, userId, name, jobs }: Noteboo
     <div className="flex min-h-screen">
       <div className="container mx-auto py-8">
         <Tabs defaultValue="notebook" className="w-full">
-          <TabsList className="grid w-[600px] grid-cols-4 mb-5">
-            <TabsTrigger value="notebook">
-              <BookOpen className="w-4 h-4 mr-2" />
-              Notebook
-            </TabsTrigger>
-            <TabsTrigger value="datasources">
-              <Database className="w-4 h-4 mr-2" />
-              Data Sources
-            </TabsTrigger>
-            <TabsTrigger value="context">
-              <Brain className="w-4 h-4 mr-2" />
-              Context
-            </TabsTrigger>
-            <TabsTrigger value="jobs">
-              <Activity className="w-4 h-4 mr-2" />
-              Jobs {jobs?.jobs?.length ? `(${jobs.jobs.length})` : '...'}
-            </TabsTrigger>
-          </TabsList>
 
           <TabsContent value="notebook">
             { isDeploying && (
@@ -198,9 +178,6 @@ export default function NotebookPage({ notebookId, userId, name, jobs }: Noteboo
                 </div>
               )} 
             </div>
-          </TabsContent>
-          <TabsContent value="jobs">
-            <JobsPage jobs={jobs} />
           </TabsContent>
         </Tabs>
       </div>

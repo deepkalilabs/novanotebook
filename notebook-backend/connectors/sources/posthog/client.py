@@ -11,6 +11,8 @@ class PostHogClient:
     def __init__(self, credentials: dict):
         self.api_key = credentials['api_key']
         self.base_url = credentials['base_url']
+
+
         self.headers = {"Authorization": f"Bearer {self.api_key}"}
 
     def test_connection(self) -> Dict[str, Any]:

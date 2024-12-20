@@ -157,7 +157,6 @@ export interface NotebookPageProps {
   notebookId: string;
   userId: string;
   name: string;
-  jobs?: Jobs;
 }
 
 export interface NotebookDetails {
