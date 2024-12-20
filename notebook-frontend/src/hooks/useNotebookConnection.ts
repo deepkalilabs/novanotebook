@@ -95,8 +95,11 @@ export function useNotebookConnection({
           break;
         case 'posthog_setup':
           parsedData = data as OutputPosthogSetupMessage;
-          console.log(`Received posthog_setup: ${parsedData.type}, success: ${parsedData.success}, message: ${parsedData.message}`);
+          alert(JSON.stringify(parsedData));
+          console.log(`Received posthog_setup: ${parsedData.type}, success: ${parsedData.success}, message: ${parsedData.message}, output: ${parsedData?.output}`);
           onPosthogSetup?.(parsedData);
+          // Make the output available on zustand
+        
           break;
         case 'error':
           onError?.(data.message);

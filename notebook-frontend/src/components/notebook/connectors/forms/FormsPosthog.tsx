@@ -1,102 +1,103 @@
 "use client"
 
+import { useState } from 'react'
+import { ExternalLinkIcon, Link, Loader2 } from 'lucide-react'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { useState } from 'react'
-import { Loader2 } from 'lucide-react'
+import { z } from 'zod'
+import { useForm } from 'react-hook-form'
 import { useUserStore } from '@/app/store'
 
 interface FormsPosthogProps {
   posthogSetup: (userId: string, apiKey: string, baseUrl: string) => void;
+  onSuccess: () => void;
 }
 
-export default function FormsPosthog({ posthogSetup }: FormsPosthogProps) {
-  const [apiKey, setApiKey] = useState('')
-  const [baseUrl, setBaseUrl] = useState('https://us.posthog.com')
+const formSchema = z.object({
+  apiKey: z.string().min(30, { message: "API Key is required" }),
+  baseUrl: z.string().min(20, { message: "Base URL is required" }),
+})
+
+export default function FormsPosthog({ posthogSetup, onSuccess }: FormsPosthogProps) {
   const { user } = useUserStore();
   const userId = user?.id || '';
   const [isConnecting, setIsConnecting] = useState(false)
-  const [error, setError] = useState<string | null>(null)
 
-  const validateForm = () => {
-    if (!apiKey.trim()) {
-      setError("API Key is required");
-      return false;
-    }
-    if (!baseUrl.trim()) {
-      setError("Base URL is required");
-      return false;
-    }
-    setError(null);
-    return true;
-  };
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      apiKey: '',
+      baseUrl: 'https://us.posthog.com',
+    },
+  })
 
-  const handleConnect = async () => {
-    if (!validateForm()) return;
-    
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    console.log(values);
     setIsConnecting(true);
     try {
-      await posthogSetup(userId, apiKey, baseUrl);
-      setError(null);
+      const res = posthogSetup(userId, values.apiKey, values.baseUrl);
+      console.log("PostHog setup response:", res);
+      onSuccess();
     } catch (err) {
-      setError("Failed to connect to PostHog. Please check your credentials.");
+      form.setError("root", { message: "Failed to connect to PostHog. Please check your credentials." });
     } finally {
       setIsConnecting(false);
     }
   };
 
   return (  
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-semibold mb-2">Connect to PostHog</h2>
-        <p className="text-muted-foreground">
-          Connect PostHog to your notebook to create an AI agent to analyze your data.
-        </p>
-      </div>
-
-      <div className="space-y-4">
-       
-
-        <div className="space-y-2">
-          <label className="font-medium">PostHog API Key</label>
-          <Input 
-            type="text" 
-            placeholder="phx_1234..." 
-            value={apiKey} 
-            onChange={(e) => setApiKey(e.target.value)} 
-            className={error ? 'border-red-500' : ''}
-          />
-         
-          <p className="text-sm text-muted-foreground">
-            Find your API key in PostHog under Project Settings → Project API Key
-          </p>
-        </div>
-
-        <div className="space-y-2">
-          <label className="font-medium">Base URL</label>
-          <Input 
-            type="text" 
-            value={baseUrl} 
-            onChange={(e) => setBaseUrl(e.target.value)} 
-            className={error ? 'border-red-500' : ''}
-          />
-          <p className="text-sm text-muted-foreground">
-            Default is app.posthog.com. Change only if you are self-hosting PostHog.
-          </p>
-        </div>
-        {error && (
-            <p className="text-sm text-red-500 font-medium">
-              {error}
+    
+      <Form {...form}>
+          <div>
+            <h2 className="text-2xl font-semibold mb-2">Connect to PostHog</h2>
+            <p className="text-muted-foreground">
+              Connect PostHog to your notebook to create an AI agent to analyze your data.
             </p>
-          )}
-      </div>
+          </div>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <FormField
+            control={form.control}
+            name="apiKey"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>PostHog API Key</FormLabel>
+                <FormControl>
+                  <Input placeholder="phx_1234..." {...field} />
+                </FormControl>
+                <FormDescription>
+                  Find your API key in PostHog under Project Settings → Project API Key. Make sure to select the "Read" permission.
+                  <a href="https://us.posthog.com/settings/project-settings/api-keys" target="_blank" rel="noopener noreferrer" className="inline-flex items-center">
+                    <ExternalLinkIcon className="w-4 h-4 ml-1" />
+                  </a>
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-      <div className="flex justify-end space-x-2">
-        <Button variant="outline">Cancel</Button>
-        <Button onClick={handleConnect} disabled={isConnecting}>
-          {isConnecting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <span className="mr-2">Connect</span>}
-        </Button>
-      </div>
-    </div>
+          <FormField
+            control={form.control}
+            name="baseUrl"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Base URL</FormLabel>
+                <FormControl>
+                  <Input placeholder="https://us.posthog.com" {...field} />
+                </FormControl>
+                <FormDescription>
+                  Default is us.posthog.com. Change only if you are self-hosting PostHog.
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <Button type="submit" disabled={isConnecting}>
+            {isConnecting ? <Loader2 className="w-4 h-4 mr-2" /> : null}
+            Connect
+          </Button>
+        </form>
+    </Form>
   )
 }

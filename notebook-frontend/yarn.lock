@@ -101,6 +101,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@hookform/resolvers@npm:^3.9.1":
+  version: 3.9.1
+  resolution: "@hookform/resolvers@npm:3.9.1"
+  peerDependencies:
+    react-hook-form: ^7.0.0
+  checksum: 95464d0a07f5f5e6776aa28b5012961954b9d5908dd34f176364ed5e883121437a8131e587bee0c7576d41814af35887543b15902f253feeff4b7a500710a76a
+  languageName: node
+  linkType: hard
+
 "@humanwhocodes/config-array@npm:^0.13.0":
   version: 0.13.0
   resolution: "@humanwhocodes/config-array@npm:0.13.0"
@@ -782,7 +791,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@radix-ui/react-label@npm:^2.1.0":
+"@radix-ui/react-label@npm:^2.1.1":
   version: 2.1.1
   resolution: "@radix-ui/react-label@npm:2.1.1"
   dependencies:
@@ -5014,12 +5023,13 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "notebook-frontend@workspace:."
   dependencies:
+    "@hookform/resolvers": ^3.9.1
     "@monaco-editor/react": ^4.6.0
     "@next-auth/supabase-adapter": ^0.2.1
     "@radix-ui/react-alert-dialog": ^1.1.4
     "@radix-ui/react-dialog": ^1.1.2
     "@radix-ui/react-dropdown-menu": ^2.1.2
-    "@radix-ui/react-label": ^2.1.0
+    "@radix-ui/react-label": ^2.1.1
     "@radix-ui/react-radio-group": ^1.2.2
     "@radix-ui/react-scroll-area": ^1.2.1
     "@radix-ui/react-separator": ^1.1.0
@@ -5058,6 +5068,7 @@ __metadata:
     posthog-js: ^1.195.0
     react: ^18.2.0
     react-dom: ^18.2.0
+    react-hook-form: ^7.54.1
     react-markdown: ^9.0.1
     react-use-websocket: ^4.10.1
     tailwind-merge: ^2.5.4
@@ -5065,6 +5076,7 @@ __metadata:
     tailwindcss-animate: ^1.0.7
     typescript: ^5
     uuid: ^11.0.3
+    zod: ^3.24.1
     zustand: ^5.0.1
   languageName: unknown
   linkType: soft
@@ -5516,6 +5528,15 @@ __metadata:
   peerDependencies:
     react: ^18.3.1
   checksum: 298954ecd8f78288dcaece05e88b570014d8f6dce5db6f66e6ee91448debeb59dcd31561dddb354eee47e6c1bb234669459060deb238ed0213497146e555a0b9
+  languageName: node
+  linkType: hard
+
+"react-hook-form@npm:^7.54.1":
+  version: 7.54.1
+  resolution: "react-hook-form@npm:7.54.1"
+  peerDependencies:
+    react: ^16.8.0 || ^17 || ^18 || ^19
+  checksum: a612479ca0e084d64eadc0197fe1a34c3bdb0b6a30f2646d73b5a93aa85793d1950476aa2dd2911713e18c6bd13b1641d3ccf846033aefc652cf973d2d842f87
   languageName: node
   linkType: hard
 
@@ -6970,6 +6991,13 @@ __metadata:
   version: 0.1.0
   resolution: "yocto-queue@npm:0.1.0"
   checksum: f77b3d8d00310def622123df93d4ee654fc6a0096182af8bd60679ddcdfb3474c56c6c7190817c84a2785648cdee9d721c0154eb45698c62176c322fb46fc700
+  languageName: node
+  linkType: hard
+
+"zod@npm:^3.24.1":
+  version: 3.24.1
+  resolution: "zod@npm:3.24.1"
+  checksum: dcd5334725b29555593c186fd6505878bb7ccb4f5954f728d2de24bf71f9397492d83bdb69d5b8a376eb500a02273ae0691b57deb1eb8718df3f64c77cc5534a
   languageName: node
   linkType: hard
 

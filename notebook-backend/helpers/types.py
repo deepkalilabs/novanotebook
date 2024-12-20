@@ -52,3 +52,4 @@ class OutputPosthogSetupMessage(BaseModel):
     type: str
     success: bool
     message: str
+    output: dict

@@ -1,8 +1,10 @@
+"use client"
+import { useState, useRef } from 'react'
 import { Button } from '@/components/ui/button'
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetClose } from '@/components/ui/sheet'
 import { Plus } from 'lucide-react'
-import { useState } from 'react'
 import { FormsPosthog, FormsDbt, FormsClickhouse, FormsSnowflake, FormsLooker, FormsAmplitude, FormsRedshift} from './forms'
+import { toast } from '@/hooks/use-toast'
 
 interface DataSource {
   id: string;
@@ -17,8 +19,22 @@ interface ConnectorsButtonProps {
 }
 
 export function ConnectorsButton({ posthogSetup }: ConnectorsButtonProps) {
+ 
+
+  const [selectedSource, setSelectedSource] = useState<string | null>(null);
+  const [open, setOpen] = useState(false);
+  const handleReset = () => setSelectedSource(null);
+
+  const handleSuccess = () => {
+    setSelectedSource(null);
+    setOpen(false);
+    toast({
+      title: 'Data source connected successfully',
+      variant: 'default',
+    });
+  };
   const [dataSources] = useState<DataSource[]>([
-    { id: 'posthog', name: 'PostHog', available: true, icon: `https://img.logo.dev/posthog.com?token=${process.env.NEXT_PUBLIC_LOGO_DEV_TOKEN}&retina=true`, form: <FormsPosthog posthogSetup={posthogSetup} /> },
+    { id: 'posthog', name: 'PostHog', available: true, icon: `https://img.logo.dev/posthog.com?token=${process.env.NEXT_PUBLIC_LOGO_DEV_TOKEN}&retina=true`, form: <FormsPosthog posthogSetup={posthogSetup} onSuccess={handleSuccess}/> },
     { id: 'dbt', name: 'dbt', available: false, icon: `https://img.logo.dev/dbt.com?token=${process.env.NEXT_PUBLIC_LOGO_DEV_TOKEN}&retina=true`, form: <FormsDbt /> },
     { id: 'clickhouse', name: 'ClickHouse', available: false, icon: `https://img.logo.dev/clickhouse.com?token=${process.env.NEXT_PUBLIC_LOGO_DEV_TOKEN}&retina=true`, form: <FormsClickhouse /> },
     { id: 'snowflake', name: 'Snowflake', available: false, icon: `https://img.logo.dev/snowflake.com?token=${process.env.NEXT_PUBLIC_LOGO_DEV_TOKEN}&retina=true`, form: <FormsSnowflake /> },
@@ -28,17 +44,13 @@ export function ConnectorsButton({ posthogSetup }: ConnectorsButtonProps) {
 
   ]);
 
-  const [selectedSource, setSelectedSource] = useState<string | null>(null);
-
-  const handleReset = () => setSelectedSource(null);
-
   return (
-    <Sheet>
+    <Sheet open={open} onOpenChange={setOpen}>
       <SheetHeader>
         <SheetTitle>
-        <SheetTrigger asChild>
-          <Button variant="outline" className="justify-end gap-2">
-            <Plus className="h-4 w-4 mr-2" />
+          <SheetTrigger asChild>
+            <Button variant="outline" className="justify-end gap-2">
+              <Plus className="h-4 w-4 mr-2" />
               Connect Data Source
             </Button>
           </SheetTrigger>
@@ -49,7 +61,7 @@ export function ConnectorsButton({ posthogSetup }: ConnectorsButtonProps) {
         <div className="py-1">
           {selectedSource ? (
             <>
-              <Button variant="ghost" onClick={handleReset} className="mb-4">
+              <Button variant="ghost" onClick={handleReset} className="mb-4 text-blue-500">
                 ← Back to connectors
               </Button>
               {dataSources.find(source => source.id === selectedSource)?.form}

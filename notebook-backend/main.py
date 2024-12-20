@@ -90,7 +90,7 @@ async def websocket_endpoint(websocket: WebSocket, session_id: str, notebook_id:
                     logging.info(f"Injecting PostHog setup code into the notebook: {posthog_setup_code}")
                     output = await nb.execute_code(code=posthog_setup_code['body'])
                     logging.info(f"output: {output}")
-                    response = OutputPosthogSetupMessage(type='posthog_setup', success=True, message="PostHog setup complete")
+                    response = OutputPosthogSetupMessage(type='posthog_setup', success=True, message="PostHog setup complete", output=output)
                     await websocket.send_json(response.model_dump())
                 else:
                     logging.error(f"Failed to setup PostHog: {posthog_setup_code['message']}")
