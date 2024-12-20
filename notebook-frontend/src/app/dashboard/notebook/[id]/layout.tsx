@@ -1,8 +1,9 @@
 "use client"
 
-import { Button } from "@/components/ui/button"
 import { Database, Notebook, Activity } from "lucide-react"
-import { useParams, useSearchParams } from 'next/navigation';
+import { useParams, useSearchParams, usePathname } from 'next/navigation';
+import Link from 'next/link';
+import { cn } from "@/lib/utils";
 
 const getNotebookNavItems = (id: string, name: string) => [
   {
@@ -22,27 +23,43 @@ const getNotebookNavItems = (id: string, name: string) => [
   },
 ]
 
-function NotebookSidebar({ id, name }: { id: string, name: string }) {
+function SidebarNav() {
+  const params = useParams();
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+  const id = params.id as string;
+  const name = searchParams.get('name') || '';
+  
+  const items = getNotebookNavItems(id, name);
+
+  return (
+    <nav className="grid items-start gap-1">
+      {items.map((item) => (
+        <Link
+          key={item.href}
+          href={item.href}
+          className={cn(
+            "flex items-center gap-2 px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground",
+            pathname === item.href ? "bg-accent" : "transparent"
+          )}
+        >
+          {item.icon}
+          {item.title}
+        </Link>
+      ))}
+    </nav>
+  )
+}
+
+function Sidebar() {
   return (
     <div className="w-[240px] border-r bg-background">
-      <div className="flex h-[60px] items-center border-b px-6">
-        <span className="font-semibold">Notebook Settings</span>
+      <div className="flex h-14 items-center border-b px-6">
+        <span className="font-medium">Notebook Editor</span>
       </div>
-      <nav className="space-y-1 p-2">
-        {getNotebookNavItems(id, name).map((item) => (
-          <Button
-            key={item.href}
-            variant="ghost"
-            className="w-full justify-start gap-2"
-            asChild
-          >
-            <a href={item.href}>
-              {item.icon}
-              <span>{item.title}</span>
-            </a>
-          </Button>
-        ))}
-      </nav>
+      <div className="py-2 px-2">
+        <SidebarNav />
+      </div>
     </div>
   )
 }
@@ -52,17 +69,12 @@ export default function NotebookLayout({
 }: {
   children: React.ReactNode
 }) {
-  const params = useParams();
-  const searchParams = useSearchParams();
-  const id = params.id as string;
-  const name = searchParams.get('name') || '';
-
   return (
-    <div className="flex">
-      <NotebookSidebar id={id} name={name} />
-      <div className="flex-1 p-6">
+    <div className="flex h-full">
+      <Sidebar />
+      <main className="flex-1 overflow-y-auto p-2">
         {children}
-      </div>
+      </main>
     </div>
   )
 } 
