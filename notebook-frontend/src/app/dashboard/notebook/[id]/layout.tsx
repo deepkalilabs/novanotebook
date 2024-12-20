@@ -22,7 +22,7 @@ const getNotebookNavItems = (id: string, name: string) => [
   },
 ]
 
-export function NotebookSidebar({ id, name }: { id: string, name: string }) {
+function NotebookSidebar({ id, name }: { id: string, name: string }) {
   return (
     <div className="w-[240px] border-r bg-background">
       <div className="flex h-[60px] items-center border-b px-6">
