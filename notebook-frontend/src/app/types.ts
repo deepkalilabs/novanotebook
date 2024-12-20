@@ -18,6 +18,7 @@ export interface NotebookToolbarProps {
   isConnected: boolean;
   allCells: NotebookCell[];
   onHandleDeploy?: () => Promise<void>;
+  posthogSetup: (userId: string, apiKey: string, baseUrl: string) => void; //TODO: Abstract to add more connectors
 }
 
 export interface NotebookStore {

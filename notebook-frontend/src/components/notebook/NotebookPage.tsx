@@ -144,15 +144,13 @@ export default function NotebookPage({ notebookId, userId, name }: NotebookPageP
                 isConnected={isConnected}
                 allCells={cells}
                 onHandleDeploy={handleDeploy}
+                posthogSetup={posthogSetup}
               />
             </div>
 
             <Separator className="my-2" />
             <br/>
 
-            <div className="space-y-6">
-              <SourcesTab globalSources={[]} posthogSetup={posthogSetup} />
-            </div>
 
             <div className="space-y-6">
               {cells.map((cell) => (

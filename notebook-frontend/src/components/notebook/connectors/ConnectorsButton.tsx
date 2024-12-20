@@ -12,11 +12,11 @@ interface DataSource {
   form: React.ReactNode;
 }
 
-interface SourcesSheetProps {
+interface ConnectorsButtonProps {
   posthogSetup: (userId: string, apiKey: string, baseUrl: string) => void;
 }
 
-export function SourcesSheet({ posthogSetup }: SourcesSheetProps) {
+export function ConnectorsButton({ posthogSetup }: ConnectorsButtonProps) {
   const [dataSources] = useState<DataSource[]>([
     { id: 'posthog', name: 'PostHog', available: true, icon: `https://img.logo.dev/posthog.com?token=${process.env.NEXT_PUBLIC_LOGO_DEV_TOKEN}&retina=true`, form: <FormsPosthog posthogSetup={posthogSetup} /> },
     { id: 'dbt', name: 'dbt', available: false, icon: `https://img.logo.dev/dbt.com?token=${process.env.NEXT_PUBLIC_LOGO_DEV_TOKEN}&retina=true`, form: <FormsDbt /> },
@@ -34,25 +34,30 @@ export function SourcesSheet({ posthogSetup }: SourcesSheetProps) {
 
   return (
     <Sheet>
-      <SheetTrigger asChild>
-        <Button variant="outline" size="sm">
-          <Plus className="h-4 w-4 mr-2" />
-          Add Data Source
-        </Button>
-      </SheetTrigger>
+      <SheetHeader>
+        <SheetTitle>
+        <SheetTrigger asChild>
+          <Button variant="outline" className="justify-end gap-2">
+            <Plus className="h-4 w-4 mr-2" />
+              Connect Data Source
+            </Button>
+          </SheetTrigger>
+        </SheetTitle>
+      </SheetHeader>
+    
       <SheetContent className="w-[35vw] sm:max-w-[35vw]">
         <div className="py-1">
           {selectedSource ? (
             <>
               <Button variant="ghost" onClick={handleReset} className="mb-4">
-                ← Back to sources
+                ← Back to connectors
               </Button>
               {dataSources.find(source => source.id === selectedSource)?.form}
             </>
           ) : (
             <>
               <SheetHeader>
-                <SheetTitle>Choose a Data Source</SheetTitle>
+                <SheetTitle>Choose a connector</SheetTitle>
               </SheetHeader>
               <div className="grid grid-cols-3 gap-4 py-4">
                 {dataSources.map((source) => (
