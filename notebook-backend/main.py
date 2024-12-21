@@ -4,11 +4,12 @@ import os
 from helpers.lambda_generator import lambda_generator
 from helpers.supabase import job_status
 from helpers.connectors.posthog.handler import PostHogHandler
+from helpers.supabase.connector_credentials import get_connector_credentials
 from helpers.types import OutputExecutionMessage, OutputSaveMessage, OutputLoadMessage, OutputGenerateLambdaMessage, OutputPosthogSetupMessage
 from uuid import UUID
 from helpers.notebook import notebook
 import logging
-
+from helpers.utils.ansi_cleaner import clean_ansi_output
 logging.basicConfig(level=logging.INFO)
 
 app = FastAPI()
@@ -74,8 +75,10 @@ async def websocket_endpoint(websocket: WebSocket, session_id: str, notebook_id:
                 base_url = data.get('base_url')
 
                 if not user_id or not api_key or not base_url:
-                    raise ValueError("User ID, API key, or base URL is required")
-
+                    logging.error("User ID, API key, or base URL is required")
+                    response = OutputPosthogSetupMessage(type='posthog_setup', success=False, message="User ID, API key, or base URL is required", output={})
+                    await websocket.send_json(response.model_dump())
+                    return
               
                 # TODO: Handle dependencies better.
                 #Task 1: Install dependencies
@@ -89,8 +92,9 @@ async def websocket_endpoint(websocket: WebSocket, session_id: str, notebook_id:
                 if posthog_setup_code['success']:
                     logging.info(f"Injecting PostHog setup code into the notebook: {posthog_setup_code}")
                     output = await nb.execute_code(code=posthog_setup_code['body'])
-                    logging.info(f"output: {output}")
-                    response = OutputPosthogSetupMessage(type='posthog_setup', success=True, message="PostHog setup complete", output=output)
+                    cleaned_output = clean_ansi_output(output)
+                    logging.info(f"output: {cleaned_output}")
+                    response = OutputPosthogSetupMessage(type='posthog_setup', success=True, message="PostHog setup complete", output={'result': cleaned_output})
                     await websocket.send_json(response.model_dump())
                 else:
                     logging.error(f"Failed to setup PostHog: {posthog_setup_code['message']}")
@@ -150,6 +154,10 @@ async def status_endpoint_job_by_request_id(user_id: int, request_id: str):
 @app.get("/status/notebook/jobs/{notebook_id}")
 async def status_endpoint_jobs_for_notebook(notebook_id: UUID): 
     return job_status.get_all_jobs_for_notebook(notebook_id)
+
+@app.get("/connectors/{user_id}/{notebook_id}")
+async def get_connectors(user_id: UUID, notebook_id: UUID):
+    return get_connector_credentials(user_id, notebook_id)
 
 if __name__ == "__main__":
     if not os.path.exists('notebooks'):

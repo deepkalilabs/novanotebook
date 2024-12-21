@@ -1,6 +1,6 @@
 "use client"
 
-import { Home, Activity } from "lucide-react"
+import { Home, Activity, Plug } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Sidebar } from "@/components/ui/sidebar"
 import { supabase } from '@/lib/supabase';
@@ -15,6 +15,11 @@ const sidebarNavItems = [
     title: "Projects",
     href: "/dashboard/projects",
     icon: <Home className="h-4 w-4" />,
+  },
+  {
+    title: "Connectors Admin",
+    href: "#",
+    icon: <Plug className="h-4 w-4" />,
   },
   {
     title: "All Jobs",

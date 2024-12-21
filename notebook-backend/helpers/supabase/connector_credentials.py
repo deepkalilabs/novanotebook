@@ -7,6 +7,8 @@ logger = logging.getLogger(__name__)
 supabase: Client = get_supabase_client()
 
 def get_connector_credentials(user_id: str, notebook_id: str):
+    print('user_id', user_id)
+    print('notebook_id', notebook_id)
 
     if not user_id:
         return {
@@ -23,7 +25,7 @@ def get_connector_credentials(user_id: str, notebook_id: str):
         }
     
     try:
-        response = supabase.table('connect_credentials') \
+        response = supabase.table('connector_credentials') \
             .select('*') \
             .eq('user_id', user_id) \
             .eq('notebook_id', notebook_id) \

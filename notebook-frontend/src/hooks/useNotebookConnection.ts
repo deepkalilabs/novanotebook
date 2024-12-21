@@ -8,6 +8,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { NotebookCell, OutputDeployMessage, NotebookConnectionProps } from '@/app/types';
 import { OutputExecutionMessage, OutputSaveMessage, OutputLoadMessage, OutputPosthogSetupMessage } from '@/app/types';
 import { useToast } from '@/hooks/use-toast';
+import { useConnectorsStore } from '@/app/store';
 
 export function useNotebookConnection({
   onOutput,
@@ -20,6 +21,7 @@ export function useNotebookConnection({
 
 }: NotebookConnectionProps) {
   const { toast } = useToast();
+  const { connectors, setConnectors } = useConnectorsStore();
   const sessionId = useRef(uuidv4()).current;
   const notebookId = notebookDetails?.notebookId
   console.log("details", notebookId)
@@ -95,11 +97,17 @@ export function useNotebookConnection({
           break;
         case 'posthog_setup':
           parsedData = data as OutputPosthogSetupMessage;
-          alert(JSON.stringify(parsedData));
           console.log(`Received posthog_setup: ${parsedData.type}, success: ${parsedData.success}, message: ${parsedData.message}, output: ${parsedData?.output}`);
           onPosthogSetup?.(parsedData);
-          // Make the output available on zustand
-        
+          // Make the output available on zustand if successful
+          if (parsedData.success) {
+            toast({
+              title: 'Data source connected successfully',
+              variant: 'default',
+            });
+            console.log("Adding connector to zustand");
+            setConnectors([...connectors, parsedData]);
+          }
           break;
         case 'error':
           onError?.(data.message);

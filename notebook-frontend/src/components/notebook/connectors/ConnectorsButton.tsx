@@ -1,7 +1,7 @@
 "use client"
-import { useState, useRef } from 'react'
+import { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetClose } from '@/components/ui/sheet'
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 import { Plus } from 'lucide-react'
 import { FormsPosthog, FormsDbt, FormsClickhouse, FormsSnowflake, FormsLooker, FormsAmplitude, FormsRedshift} from './forms'
 import { toast } from '@/hooks/use-toast'
@@ -28,10 +28,6 @@ export function ConnectorsButton({ posthogSetup }: ConnectorsButtonProps) {
   const handleSuccess = () => {
     setSelectedSource(null);
     setOpen(false);
-    toast({
-      title: 'Data source connected successfully',
-      variant: 'default',
-    });
   };
   const [dataSources] = useState<DataSource[]>([
     { id: 'posthog', name: 'PostHog', available: true, icon: `https://img.logo.dev/posthog.com?token=${process.env.NEXT_PUBLIC_LOGO_DEV_TOKEN}&retina=true`, form: <FormsPosthog posthogSetup={posthogSetup} onSuccess={handleSuccess}/> },
@@ -86,8 +82,8 @@ export function ConnectorsButton({ posthogSetup }: ConnectorsButtonProps) {
                 ))}
 
                 <div className="col-span-3 border-t pt-4">
-                  <Button variant="ghost" className="w-full justify-start text-muted-foreground">
-                    <span className="text-sm">Interested in a new integration? Email us to suggest an integration</span>
+                  <Button variant="ghost" className="w-full justify-start text-muted-foreground" onClick={() => window.open('mailto:charlesjavelona@gmail.com')}>
+                    <span className="text-sm text-blue-500">Interested in a new integration? Email us to suggest an integration</span>
                   </Button>
                 </div>
               </div>

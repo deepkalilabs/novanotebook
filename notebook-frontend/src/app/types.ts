@@ -178,3 +178,27 @@ export interface NotebookConnectionProps {
   notebookDetails?: NotebookDetails;
   onPosthogSetup?: (data: OutputPosthogSetupMessage) => void;
 }
+
+export interface Connector {
+  type: string;
+  success: boolean;
+  message: string;
+  output: JSON;
+}
+
+export interface ConnectorsStore {
+  connectors: Connector[];
+  setConnectors: (connectors: Connector[]) => void;
+}
+
+export interface ConnectorCredentials {
+  id: string;
+  connector_id: string;
+  user_id: string;
+  notebook_id: string;
+  credentials: JSON;
+}
+
+export interface ConnectorCredentialsList {
+  credentials: ConnectorCredentials[];
+}

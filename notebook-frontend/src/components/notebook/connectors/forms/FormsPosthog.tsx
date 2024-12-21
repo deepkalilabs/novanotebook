@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { ExternalLinkIcon, Link, Loader2 } from 'lucide-react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { z } from 'zod'
 import { useForm } from 'react-hook-form'
-import { useUserStore } from '@/app/store'
+import { useUserStore, useConnectorsStore } from '@/app/store'
 
 interface FormsPosthogProps {
   posthogSetup: (userId: string, apiKey: string, baseUrl: string) => void;
@@ -18,16 +18,19 @@ interface FormsPosthogProps {
 const formSchema = z.object({
   apiKey: z.string().min(30, { message: "API Key is required" }),
   baseUrl: z.string().min(20, { message: "Base URL is required" }),
+  userId: z.string().min(5, { message: "User ID is required" })
 })
 
 export default function FormsPosthog({ posthogSetup, onSuccess }: FormsPosthogProps) {
   const { user } = useUserStore();
   const userId = user?.id || '';
+  const { connectors } = useConnectorsStore();
   const [isConnecting, setIsConnecting] = useState(false)
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
+      userId: userId,
       apiKey: '',
       baseUrl: 'https://us.posthog.com',
     },
@@ -36,9 +39,17 @@ export default function FormsPosthog({ posthogSetup, onSuccess }: FormsPosthogPr
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     console.log(values);
     setIsConnecting(true);
+
+    //TODO: Enable multiple posthog connectors. This is a temporary fix to prevent duplicate connectors.
+    //If the connector is already in the list, don't add it again
+    if (connectors.find(connector => connector.type === 'posthog')) {
+      form.setError("root", { message: "PostHog is already connected." });
+      return;
+    }
+
     try {
-      const res = posthogSetup(userId, values.apiKey, values.baseUrl);
-      console.log("PostHog setup response:", res);
+      console.log("Calling posthogSetup");
+      posthogSetup(values.userId, values.apiKey, values.baseUrl);
       onSuccess();
     } catch (err) {
       form.setError("root", { message: "Failed to connect to PostHog. Please check your credentials." });
@@ -46,6 +57,10 @@ export default function FormsPosthog({ posthogSetup, onSuccess }: FormsPosthogPr
       setIsConnecting(false);
     }
   };
+
+  useEffect(() => {
+    console.log(connectors);
+  }, [connectors]);
 
   return (  
     
