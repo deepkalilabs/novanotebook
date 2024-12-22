@@ -14,4 +14,7 @@ dependencies = [
     "websockets",
     "supabase",
     "python-dotenv>=1.0.1",
+    "apscheduler>=3.11.0",
+    "flask-sqlalchemy>=3.1.1",
+    "psycopg2>=2.9.10",
 ]

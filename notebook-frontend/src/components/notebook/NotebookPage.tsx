@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import {  Activity, Brain, BookOpen, Database } from 'lucide-react'
+import {  Activity, Brain, BookOpen, Database, Clock } from 'lucide-react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Separator } from '@/components/ui/separator';
 import { useNotebookStore } from '@/app/store';
@@ -12,7 +12,8 @@ import { Jobs, OutputDeployMessage, CellType, NotebookPageProps } from '@/app/ty
 import DeploymentDialog from '@/components/notebook/NotebookDeploy';
 import { SourcesTab } from '@/components/notebook/connectors/Sources';
 import { JobsPage } from '@/components/notebook/jobs/JobsPage';
-
+import { JobScheduler } from '@/components/notebook/jobs/JobScheduler';
+import { getApiUrl } from '@/app/lib/config';
 
 export default function NotebookPage({ notebookId, userId, name, jobs }: NotebookPageProps) {
   const { toast } = useToast();
@@ -139,6 +140,10 @@ export default function NotebookPage({ notebookId, userId, name, jobs }: Noteboo
                 <Activity className="w-4 h-4 mr-2" />
                 Jobs {jobs?.jobs?.length ? `(${jobs.jobs.length})` : '...'}
               </TabsTrigger>
+              <TabsTrigger value="schedule" className="flex-1">
+                <Clock className="w-4 h-4 mr-2" />
+                Schedule
+              </TabsTrigger>
             </TabsList>
             <div className="flex flex-1 justify-end">
               <SourcesTab globalSources={[]} posthogSetup={posthogSetup} />
@@ -202,6 +207,12 @@ export default function NotebookPage({ notebookId, userId, name, jobs }: Noteboo
           </TabsContent>
           <TabsContent value="jobs">
             <JobsPage jobs={jobs} />
+          </TabsContent>
+
+          <TabsContent value="schedule">
+            <JobScheduler 
+              notebookId={notebookId}
+            />
           </TabsContent>
         </Tabs>
       </div>
