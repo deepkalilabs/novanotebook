@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react';
 import NotebookPage from '@/components/notebook/NotebookPage';
 import { Jobs } from '@/app/types';
 import { useUserStore } from '@/app/store';
+
 export default function Notebook() {
   const params = useParams();
   const searchParams = useSearchParams();
