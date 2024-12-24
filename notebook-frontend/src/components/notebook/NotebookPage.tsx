@@ -9,7 +9,6 @@ import { NotebookToolbar } from '@/components/notebook/NotebookToolbar';
 import { NotebookCell } from '@/components/notebook/NotebookCell';
 import { OutputDeployMessage, CellType, NotebookPageProps } from '@/app/types';
 import DeploymentDialog from '@/components/notebook/NotebookDeploy';
-import { SourcesTab } from '@/components/notebook/connectors/Sources';
 
 
 export default function NotebookPage({ notebookId, userId, name }: NotebookPageProps) {
@@ -111,11 +110,6 @@ export default function NotebookPage({ notebookId, userId, name }: NotebookPageP
     deployCode(cells, userId, name, notebookId)
   }
 
-  /*
-  useEffect(() => {
-    console.log(cells);
-  }), [cells];
-  */
 
   return (
     <div className="flex min-h-screen">

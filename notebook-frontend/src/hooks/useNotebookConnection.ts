@@ -100,11 +100,8 @@ export function useNotebookConnection({
           console.log(`Received posthog_setup: ${parsedData.type}, success: ${parsedData.success}, message: ${parsedData.message}, output: ${parsedData?.output}`);
           onPosthogSetup?.(parsedData);
           // Make the output available on zustand if successful
+          alert(parsedData);
           if (parsedData.success) {
-            toast({
-              title: 'Data source connected successfully',
-              variant: 'default',
-            });
             console.log("Adding connector to zustand");
             setConnectors([...connectors, parsedData]);
           }

@@ -27,6 +27,11 @@ export default function FormsPosthog({ posthogSetup, onSuccess }: FormsPosthogPr
   const { connectors } = useConnectorsStore();
   const [isConnecting, setIsConnecting] = useState(false)
 
+
+  useEffect(() => {
+    console.log(connectors);
+  }, [connectors]);
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -58,9 +63,6 @@ export default function FormsPosthog({ posthogSetup, onSuccess }: FormsPosthogPr
     }
   };
 
-  useEffect(() => {
-    console.log(connectors);
-  }, [connectors]);
 
   return (  
     

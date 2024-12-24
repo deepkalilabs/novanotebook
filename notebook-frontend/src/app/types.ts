@@ -196,6 +196,7 @@ export interface ConnectorCredentials {
   connector_id: string;
   user_id: string;
   notebook_id: string;
+  connector_type: string;
   credentials: JSON;
 }
 
