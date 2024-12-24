@@ -46,6 +46,7 @@ export default function ConnectorsPage() {
 
       return response.json();
     } catch (error) {
+      console.error("Error fetching connectors", error)
       toast({
         title: 'Error',
         description: 'An unexpected error occurred while fetching connectors.',

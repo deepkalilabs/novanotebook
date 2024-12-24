@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from 'react'
-import { ExternalLinkIcon, Link, Loader2 } from 'lucide-react'
+import { ExternalLinkIcon, Loader2 } from 'lucide-react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
@@ -44,7 +44,7 @@ export default function FormsPosthog({ posthogSetup, onSuccess }: FormsPosthogPr
     },
   })
 
-  //TODO: Enable multiple posthog connectors. This is a temporary fix to prevent duplicate connectors.
+  //TODO: Possibly enable multiple posthog connectors for different API keys. This is a temporary fix to prevent duplicate connectors.
   //If the connector is already in the list, don't add it again
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     console.log(values);
@@ -61,11 +61,10 @@ export default function FormsPosthog({ posthogSetup, onSuccess }: FormsPosthogPr
         form.setError("root", { message: "PostHog is already connected. Support for multiple connections is in the roadmap. Need this feature now!? Contact us at support@trycosmic.ai" });
         return;
       }
-
-      console.log("Calling posthogSetup");
       posthogSetup(values.userId, values.apiKey, values.baseUrl);
       onSuccess();
     } catch (err) {
+      console.error("Error connecting to PostHog", err)
       form.setError("root", { message: "Failed to connect to PostHog. Please check your credentials." });
     } finally {
       setIsConnecting(false);
@@ -93,7 +92,7 @@ export default function FormsPosthog({ posthogSetup, onSuccess }: FormsPosthogPr
                   <Input placeholder="phx_1234..." {...field} />
                 </FormControl>
                 <FormDescription>
-                  Find your API key in PostHog under Project Settings → Project API Key. Make sure to select the "Read" permission.
+                  Find your API key in PostHog under Project Settings → Project API Key. Make sure to select the &quot;Read&quot; permission.
                   <a href="https://us.posthog.com/settings/project-settings/api-keys" target="_blank" rel="noopener noreferrer" className="inline-flex items-center">
                     <ExternalLinkIcon className="w-4 h-4 ml-1" />
                   </a>
