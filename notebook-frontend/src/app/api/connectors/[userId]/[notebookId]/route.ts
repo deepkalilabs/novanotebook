@@ -1,6 +1,11 @@
 import type { NextRequest } from 'next/server'
 import { getApiUrl } from  '@/app/lib/config';
 
+/**
+ * This endpoint is used to fetch connectors for a given notebook.
+ * @param req - The request object.
+ * @returns A JSON response with the connectors.
+ */
 export async function GET(
   req: NextRequest
 ) {

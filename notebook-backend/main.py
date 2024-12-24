@@ -4,7 +4,7 @@ import os
 from helpers.lambda_generator import lambda_generator
 from helpers.supabase import job_status
 from helpers.connectors.posthog.handler import PostHogHandler
-from helpers.supabase.connector_credentials import get_connector_credentials
+from helpers.supabase.connector_credentials import get_connector_credentials, get_is_type_connected 
 from helpers.types import OutputExecutionMessage, OutputSaveMessage, OutputLoadMessage, OutputGenerateLambdaMessage, OutputPosthogSetupMessage
 from uuid import UUID
 from helpers.notebook import notebook
@@ -158,6 +158,10 @@ async def status_endpoint_jobs_for_notebook(notebook_id: UUID):
 @app.get("/connectors/{user_id}/{notebook_id}")
 async def get_connectors(user_id: UUID, notebook_id: UUID):
     return get_connector_credentials(user_id, notebook_id)
+
+@app.get("/connectors/{user_id}/{notebook_id}/{type}")
+async def get_connectors(user_id: UUID, notebook_id: UUID, type: str):
+    return get_is_type_connected(user_id, notebook_id, type)
 
 if __name__ == "__main__":
     if not os.path.exists('notebooks'):

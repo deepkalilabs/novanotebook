@@ -128,3 +128,44 @@ def delete_connector_credentials(id: str):
             'body': json.dumps({'error': str(e)}),
             'message': 'Error deleting connector credentials'
         }
+    
+
+def get_is_type_connected(user_id: str, notebook_id: str, type: str):
+    if not user_id:
+        return {
+            'statusCode': 400,
+            'body': json.dumps({'error': 'User ID is required'}),
+            'message': 'User ID is required'
+        }
+    
+    if not notebook_id:
+        return {
+            'statusCode': 400,
+            'body': json.dumps({'error': 'Notebook ID is required'}),
+            'message': 'Notebook ID is required'
+        }
+    
+    if not type:
+        return {
+            'statusCode': 400,
+            'body': json.dumps({'error': 'Type is required'}),
+            'message': 'Type is required'
+        }
+    
+    try:
+        response = supabase.table('connector_credentials') \
+            .select('id') \
+            .eq('user_id', user_id) \
+            .eq('notebook_id', notebook_id) \
+            .eq('connector_type', type) \
+            .limit(1) \
+            .execute()
+        
+        return {
+            'statusCode': 200,
+            'body': json.dumps({'is_connected': len(response.data) > 0}),
+            'message': 'Successfully retrieved connector credentials'
+        }
+    except Exception as e:
+        logger.error(f"Error checking connector connection: {str(e)}")
+        return False

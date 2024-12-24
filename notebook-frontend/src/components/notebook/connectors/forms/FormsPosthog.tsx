@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import { z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { useUserStore, useConnectorsStore } from '@/app/store'
+import { getApiUrl } from '@/app/lib/config'
 
 interface FormsPosthogProps {
   posthogSetup: (userId: string, apiKey: string, baseUrl: string) => void;
@@ -24,12 +25,14 @@ const formSchema = z.object({
 export default function FormsPosthog({ posthogSetup, onSuccess }: FormsPosthogProps) {
   const { user } = useUserStore();
   const userId = user?.id || '';
+  const notebookId = window.location.pathname.split('/').pop()?.split('?')[0];
+  console.log("notebookId", notebookId)
   const { connectors } = useConnectorsStore();
   const [isConnecting, setIsConnecting] = useState(false)
 
 
   useEffect(() => {
-    console.log(connectors);
+    console.log("connectors", connectors);
   }, [connectors]);
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -41,18 +44,24 @@ export default function FormsPosthog({ posthogSetup, onSuccess }: FormsPosthogPr
     },
   })
 
+  //TODO: Enable multiple posthog connectors. This is a temporary fix to prevent duplicate connectors.
+  //If the connector is already in the list, don't add it again
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     console.log(values);
     setIsConnecting(true);
-
-    //TODO: Enable multiple posthog connectors. This is a temporary fix to prevent duplicate connectors.
-    //If the connector is already in the list, don't add it again
-    if (connectors.find(connector => connector.type === 'posthog')) {
-      form.setError("root", { message: "PostHog is already connected." });
-      return;
-    }
-
+    
     try {
+      const response = await fetch(`${getApiUrl()}/connectors/${userId}/${notebookId}/posthog`);
+      console.log("Checking if PostHog is connected", response)
+      const data = await response.json();
+      const isConnected = JSON.parse(data.body).is_connected;
+      console.log("isConnected", isConnected)
+      
+      if (isConnected) {
+        form.setError("root", { message: "PostHog is already connected. Support for multiple connections is in the roadmap. Need this feature now!? Contact us at support@trycosmic.ai" });
+        return;
+      }
+
       console.log("Calling posthogSetup");
       posthogSetup(values.userId, values.apiKey, values.baseUrl);
       onSuccess();
@@ -110,6 +119,7 @@ export default function FormsPosthog({ posthogSetup, onSuccess }: FormsPosthogPr
               </FormItem>
             )}
           />
+          { form.formState.errors.root && <FormMessage>{form.formState.errors.root.message}</FormMessage> }
           <Button type="submit" disabled={isConnecting}>
             {isConnecting ? <Loader2 className="w-4 h-4 mr-2" /> : null}
             Connect
