@@ -177,3 +177,28 @@ export interface NotebookConnectionProps {
   notebookDetails?: NotebookDetails;
   onPosthogSetup?: (data: OutputPosthogSetupMessage) => void;
 }
+
+export interface NotebookDetails {
+  id: string;
+  name: string;
+  description?: string;
+  user_id: string;
+  s3_url?: string;
+  submit_endpoint?: string;
+  cells?: any[];
+  session_id?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface ScheduledJob {
+  id: string;
+  submit_endpoint: string;
+  input_params: string;
+  schedule: string;
+  last_run?: string;
+  next_run?: string;
+  status?: string;
+  last_run_output?: string;
+}
+
