@@ -4,6 +4,7 @@ import { Check, File, Upload } from 'lucide-react';
 export const FileUploadEditor = () => {
   const [uploadedFile, setUploadedFile] = useState<string | null>(null);
 
+  // TODO: Add file upload to S3 and save to public/upload for backend server.
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     try {
       const file = e.target.files?.[0];

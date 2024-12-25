@@ -1,18 +1,19 @@
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 import os
 from helpers.lambda_generator import lambda_generator
 from helpers.supabase import job_status
-from helpers.types import OutputExecutionMessage, OutputSaveMessage, OutputLoadMessage, OutputGenerateLambdaMessage, OutputPosthogSetupMessage
+from helpers.types import OutputExecutionMessage, OutputSaveMessage, OutputLoadMessage, OutputGenerateLambdaMessage, OutputPosthogSetupMessage, ScheduledJob, NotebookDetails
 from uuid import UUID
 from helpers.notebook import notebook
 from connectors.helpers.aws.s3.helpers import S3Helper
 import logging
-
+from helpers.scheduler.notebook_scheduler import NotebookScheduler
+from typing import List
 logging.basicConfig(level=logging.INFO)
 
 app = FastAPI()
-
+scheduler = NotebookScheduler()  # Single instance
 # Enable CORS for frontend communication
 app.add_middleware(
     CORSMiddleware,
@@ -182,6 +183,64 @@ async def status_endpoint_job_by_request_id(user_id: int, request_id: str):
 @app.get("/status/notebook/jobs/{notebook_id}")
 async def status_endpoint_jobs_for_notebook(notebook_id: UUID): 
     return job_status.get_all_jobs_for_notebook(notebook_id)
+
+@app.on_event("startup")
+async def start_scheduler():
+    scheduler.start()
+
+@app.on_event("shutdown")
+async def shutdown_scheduler():
+    scheduler.shutdown()
+
+@app.get("/notebook_details/{notebook_id}")
+async def get_notebook_details(notebook_id: str) -> NotebookDetails:
+    nb = notebook.NotebookUtils(notebook_id)
+    details = await nb.get_notebook_details()
+    return NotebookDetails(**details)
+
+@app.get("/notebook_job_schedule/{notebook_id}")
+async def get_schedules(notebook_id: str) -> List[ScheduledJob]:
+    schedules = await scheduler.get_schedules(notebook_id)
+    return schedules
+
+@app.post("/notebook_job_schedule/{notebook_id}")
+async def create_schedule(notebook_id: str, schedule: dict):
+    print(f"Creating schedule for notebook {notebook_id} with params {schedule}")
+    scheduled_details = ScheduledJob(**schedule)
+    try:
+        job_details = await scheduler.create_or_update_schedule(
+            notebook_id=notebook_id,
+            schedule_details=scheduled_details
+        )
+        
+        return job_details
+    
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.put("/notebook_job_schedule/{schedule_id}")
+async def update_schedule(schedule_id: str, schedule: ScheduledJob):
+    try:
+        job_details = await scheduler.create_or_update_schedule(
+            schedule_id=schedule_id,
+            schedule_type=schedule.schedule,
+            input_params=schedule.input_params,
+        )
+        
+        return {
+            "status": "success",
+            "data": job_details
+        }
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.delete("/notebook_job_schedule/{schedule_id}")
+async def delete_schedule(schedule_id: str):
+    try:
+        scheduler.remove_schedule(schedule_id)
+        return {"status": "success"}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 if __name__ == "__main__":
     if not os.path.exists('notebooks'):
