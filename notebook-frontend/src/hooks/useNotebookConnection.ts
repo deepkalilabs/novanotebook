@@ -96,11 +96,12 @@ export function useNotebookConnection({
           onNotebookDeployed?.(parsedData);
           break;
         case 'posthog_setup':
+          //TODO: Enacpulate to use the same logic as the other connectors
+          console.log("Received posthog_setup")
           parsedData = data as OutputPosthogSetupMessage;
           console.log(`Received posthog_setup: ${parsedData.type}, success: ${parsedData.success}, message: ${parsedData.message}, output: ${parsedData?.output}`);
           onPosthogSetup?.(parsedData);
           // Make the output available on zustand if successful
-          alert(parsedData);
           if (parsedData.success) {
             console.log("Adding connector to zustand");
             setConnectors([...connectors, parsedData]);

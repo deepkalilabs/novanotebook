@@ -53,3 +53,16 @@ class OutputPosthogSetupMessage(BaseModel):
     success: bool
     message: str
     output: dict
+
+
+class ConnectorResponse(BaseModel):
+    success: bool
+    message: str
+    cell: Optional[dict] # Cell data to inject
+
+class ConnectorCredentials(BaseModel):
+    user_id: str
+    notebook_id: str
+    connector_type: str
+    credentials: dict
+

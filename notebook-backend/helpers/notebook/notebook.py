@@ -1,4 +1,5 @@
 import os
+import uuid
 import json
 import sh
 import sys
@@ -8,6 +9,9 @@ from jupyter_client import KernelManager
 from helpers.aws.s3 import s3
 from pathlib import Path
 from typing import Tuple
+from fastapi import WebSocket
+from helpers.connectors.manager import ConnectorManager
+from helpers.connectors.types import ConnectorCredentials, ConnectorResponse
 
 class MagicCommandHandler:
     """Handles magic commands using the sh library."""
@@ -126,11 +130,13 @@ class MagicCommandHandler:
 
 
 class NotebookUtils():
-    def __init__(self, notebook_id: str):
+    def __init__(self, notebook_id: str, websocket: WebSocket):
         self.env_name = f"venv_kernel_{notebook_id}"
         self.magic_command_handler = None
         self.kernel_client = None
         self.kernel_manager = None
+        self.websocket = websocket
+        self.connector_manager = ConnectorManager(websocket)
     
     @property
     def relevant_env_path(self):
@@ -173,11 +179,22 @@ class NotebookUtils():
         self.kernel_client.start_channels()
         return self.kernel_manager, self.kernel_client
     
+    async def send_frontend_message(self, event_type: str, data: dict):
+        """
+        Send a message to the frontend.
+        """
+        if self.websocket:
+            await self.websocket.send_json({
+                "type": event_type,
+                "data": data
+            })
+    
     async def execute_code(self, code: str) -> str:
         try:
             if code.strip().startswith('!'):
                 self.magic_command_handler = MagicCommandHandler(self.relevant_env_path)
                 return self.magic_command_handler.execute(code)
+            
         except Exception as e:  
             return "Error in the magic command: " + str(e)
             
@@ -221,7 +238,7 @@ class NotebookUtils():
     async def save_notebook(self, data: dict):
         try:
             notebook = data.get('cells')
-            filename = data.get('filename')
+            #filename = data.get('filename')
             user_id = data.get('user_id')
             notebook_id = data.get('notebook_id')
 
@@ -277,3 +294,31 @@ class NotebookUtils():
         except Exception as e:
             return {"status": "error", "message": str(e), "notebook": []}
             
+
+    async def handle_connector_request(self, credentials: ConnectorCredentials) -> ConnectorResponse:
+        """
+        Handle a connector request.
+        Returns:
+            {
+                "success": bool,
+                "message": string,
+                "cell": {
+                    "cell_type": "connector",
+                    "connector_type": "string",
+                    "source": "string",
+                    "outputs": []
+                }
+            }
+            example:
+            {
+                "success": True,
+                "message": "Connector initialized successfully",
+                "cell": {
+                    "cell_type": "connector",
+                    "connector_type": "posthog",
+                    "source": "from connectors.services.posthog.posthog_service import PostHogService",
+                    "outputs": []
+                }
+            }
+        """
+        return await self.connector_manager.handle_connector_request(credentials, self.code_executor)

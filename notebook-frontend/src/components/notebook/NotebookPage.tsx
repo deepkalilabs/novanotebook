@@ -9,13 +9,14 @@ import { NotebookToolbar } from '@/components/notebook/NotebookToolbar';
 import { NotebookCell } from '@/components/notebook/NotebookCell';
 import { OutputDeployMessage, CellType, NotebookPageProps } from '@/app/types';
 import DeploymentDialog from '@/components/notebook/NotebookDeploy';
-
+import { useConnectorsStore } from '@/app/store';
 
 export default function NotebookPage({ notebookId, userId, name }: NotebookPageProps) {
   const { toast } = useToast();
   const { cells, addCell, updateCellCode, updateCellOutput, deleteCell, moveCellUp, moveCellDown, setCells } = useNotebookStore();
   const [ isDeploying, setIsDeploying ] = useState(false);
   const [ deploymentData, setDeploymentData] = useState<OutputDeployMessage>({} as OutputDeployMessage);
+  const { connectors } = useConnectorsStore();
   const {
     executeCode,
     saveNotebook,
@@ -89,6 +90,21 @@ export default function NotebookPage({ notebookId, userId, name }: NotebookPageP
       loadNotebook(name, notebookId, userId);
     }
   }, [isConnected]);
+
+  useEffect(() => {
+    console.log("connectors updated", connectors)
+    alert(connectors)
+    if (connectors.length > 0) {
+      //Iterate over connectors, if the connector has_seen_doc is false, inject the last entry cell or show a alert message to direct the user to a doc
+      //If the connector has_seen_doc is true, do nothing
+      connectors.forEach(connector => {
+        if (!connector?.has_seen_doc) {
+          addCell(CellType.Entry)
+        }
+      })
+    }
+
+  }, [connectors])
 
   const handleExecute = async (cellId: string) => {
     const cell = cells.find(c => c.id === cellId);
