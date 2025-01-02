@@ -80,7 +80,7 @@ async def create_connector_credentials(user_id: str, notebook_id: str, connector
         }
     
     try:
-        response =  supabase.table('connector_credentials') \
+        response = supabase.table('connector_credentials') \
             .upsert({
                 'user_id': user_id,
                 'notebook_id': notebook_id,
@@ -91,7 +91,6 @@ async def create_connector_credentials(user_id: str, notebook_id: str, connector
         
         return {
             'statusCode': 200,
-            'body': json.dumps(response.data),
             'message': 'Connector credentials created successfully'
         }
     except Exception as e:

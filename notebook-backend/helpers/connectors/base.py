@@ -35,8 +35,8 @@ class BaseConnector(ABC):
                 credentials=self.credentials
             )
             print("Response from database", response)
-            
-            if response.get('status_code') != 200:
+
+            if response.get('statusCode') != 200:
                 print("Error storing credentials to database", response)
                 return {
                     'success': False,
