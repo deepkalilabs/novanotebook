@@ -5,7 +5,7 @@ import { useCallback, useEffect, useRef } from 'react';
 import useWebSocket, { ReadyState } from 'react-use-websocket';
 import { v4 as uuidv4 } from 'uuid';
 
-import { NotebookCell, OutputDeployMessage, NotebookConnectionProps } from '@/app/types';
+import { NotebookCell, OutputDeployMessage, NotebookConnectionProps, ConnectorCredentials } from '@/app/types';
 import { OutputExecutionMessage, OutputSaveMessage, OutputLoadMessage, OutputPosthogSetupMessage } from '@/app/types';
 import { useToast } from '@/hooks/use-toast';
 import { useConnectorsStore } from '@/app/store';
@@ -17,8 +17,9 @@ export function useNotebookConnection({
   onNotebookDeployed,
   onError,
   notebookDetails,
-  onPosthogSetup
-
+  onPosthogSetup,
+  onConnectorStatus,
+  onConnectorCreated
 }: NotebookConnectionProps) {
   const { toast } = useToast();
   const { connectors, setConnectors } = useConnectorsStore();
@@ -107,6 +108,15 @@ export function useNotebookConnection({
             setConnectors([...connectors, parsedData]);
           }
           break;
+        case 'connector_status':
+          console.log("Received connector_status")
+          onConnectorStatus?.({success: data.success, message: data.message});
+          break;
+        case 'connector_created':
+          console.log("Received connector_created")
+          onConnectorCreated?.(data as ConnectorCredentials);
+          break;
+          
         case 'error':
           onError?.(data.message);
           break;
@@ -170,6 +180,16 @@ export function useNotebookConnection({
     }));
   }, [sendMessage]);
 
+  const createConnector = useCallback((connectorType: string, credentials: any, user_id: string, notebook_id: string) => {
+    sendMessage(JSON.stringify({
+      type: 'create_connector',
+      connector_type: connectorType,
+      credentials: credentials,
+      user_id: user_id,
+      notebook_id: notebook_id
+    }));
+  }, [sendMessage]);
+
   return {
     executeCode,
     saveNotebook,
@@ -177,6 +197,7 @@ export function useNotebookConnection({
     restartKernel,
     deployCode,
     posthogSetup,
+    createConnector,
     isConnected: readyState === ReadyState.OPEN,
     connectionStatus: {
       [ReadyState.CONNECTING]: 'Connecting',

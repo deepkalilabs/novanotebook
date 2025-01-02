@@ -13,11 +13,7 @@ interface DataSource {
   form: React.ReactNode;
 }
 
-interface ConnectorsButtonProps {
-  posthogSetup: (userId: string, apiKey: string, baseUrl: string) => void;
-}
-
-export function ConnectorsButton({ posthogSetup }: ConnectorsButtonProps) {
+export function ConnectorsButton() {
  
 
   const [selectedSource, setSelectedSource] = useState<string | null>(null);
@@ -29,7 +25,7 @@ export function ConnectorsButton({ posthogSetup }: ConnectorsButtonProps) {
     setOpen(false);
   };
   const [dataSources] = useState<DataSource[]>([
-    { id: 'posthog', name: 'PostHog', available: true, icon: `https://img.logo.dev/posthog.com?token=${process.env.NEXT_PUBLIC_LOGO_DEV_TOKEN}&retina=true`, form: <FormsPosthog posthogSetup={posthogSetup} onSuccess={handleSuccess}/> },
+    { id: 'posthog', name: 'PostHog', available: true, icon: `https://img.logo.dev/posthog.com?token=${process.env.NEXT_PUBLIC_LOGO_DEV_TOKEN}&retina=true`, form: <FormsPosthog onSuccess={handleSuccess}/> },
     { id: 'dbt', name: 'dbt', available: false, icon: `https://img.logo.dev/dbt.com?token=${process.env.NEXT_PUBLIC_LOGO_DEV_TOKEN}&retina=true`, form: <FormsDbt /> },
     { id: 'clickhouse', name: 'ClickHouse', available: false, icon: `https://img.logo.dev/clickhouse.com?token=${process.env.NEXT_PUBLIC_LOGO_DEV_TOKEN}&retina=true`, form: <FormsClickhouse /> },
     { id: 'snowflake', name: 'Snowflake', available: false, icon: `https://img.logo.dev/snowflake.com?token=${process.env.NEXT_PUBLIC_LOGO_DEV_TOKEN}&retina=true`, form: <FormsSnowflake /> },

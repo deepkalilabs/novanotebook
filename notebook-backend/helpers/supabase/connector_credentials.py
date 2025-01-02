@@ -50,7 +50,7 @@ def get_connector_credentials(user_id: str, notebook_id: str):
 
 
 
-def create_connector_credentials(user_id: str, notebook_id: str, connector_type: str, credentials: dict):
+async def create_connector_credentials(user_id: str, notebook_id: str, connector_type: str, credentials: dict):
     if not user_id:
         return {
             'statusCode': 400,
@@ -80,7 +80,7 @@ def create_connector_credentials(user_id: str, notebook_id: str, connector_type:
         }
     
     try:
-        response = supabase.table('connector_credentials') \
+        response =  supabase.table('connector_credentials') \
             .upsert({
                 'user_id': user_id,
                 'notebook_id': notebook_id,
@@ -99,7 +99,7 @@ def create_connector_credentials(user_id: str, notebook_id: str, connector_type:
         return {
             'statusCode': 500,
             'body': json.dumps({'error': str(e)}),
-            'message': 'Error creating connector credentials'
+            'message': str(e)
         }
 
 def delete_connector_credentials(id: str):

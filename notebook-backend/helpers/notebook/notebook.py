@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import Tuple
 from fastapi import WebSocket
 from helpers.connectors.manager import ConnectorManager
-from helpers.connectors.types import ConnectorCredentials, ConnectorResponse
+from helpers.types import ConnectorCredentials, ConnectorResponse
 
 class MagicCommandHandler:
     """Handles magic commands using the sh library."""
@@ -321,4 +321,4 @@ class NotebookUtils():
                 }
             }
         """
-        return await self.connector_manager.handle_connector_request(credentials, self.code_executor)
+        return await self.connector_manager.setup_connector(credentials, self.execute_code)

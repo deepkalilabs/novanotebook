@@ -26,6 +26,7 @@ class BaseConnector(ABC):
     async def setup(self) -> ConnectorResponse:
         """Setup connector and store credentials"""
         try:
+            print("Storing credentials to database")
             # 1. Store credentials
             response = await create_connector_credentials(
                 user_id=self.user_id,
@@ -33,14 +34,18 @@ class BaseConnector(ABC):
                 connector_type=self.connector_type,
                 credentials=self.credentials
             )
+            print("Response from database", response)
             
-            if not response['success']:
+            if response.get('status_code') != 200:
+                print("Error storing credentials to database", response)
                 return {
                     'success': False,
-                    'message': 'Failed to store credentials',
+                    'message': response.get('message'),
                     'cell': None
                 }
 
+            print("Credentials stored successfully to database", response)
+            print("Preparing cell data for connector")
             # 2. Create cell data
             cell_data = {
                 'cell_type': 'connector',

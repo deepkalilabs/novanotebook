@@ -48,12 +48,6 @@ class SupabaseConnectorCredential(BaseModel):
 class SupabaseConnectorCredentialList(BaseModel):
     credentials: list[SupabaseConnectorCredential]
 
-class OutputPosthogSetupMessage(BaseModel):
-    type: str
-    success: bool
-    message: str
-    output: dict
-
 
 class ConnectorResponse(BaseModel):
     success: bool

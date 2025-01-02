@@ -28,22 +28,26 @@ class ConnectorManager:
     ) -> ConnectorResponse:
         """Setup a new connector"""
         try:
+            print(f"Searching for connector {credentials['connector_type']}")
             # 1. Create connector instance
-            connector = ConnectorFactory.create_connector(
+            connector = ConnectorFactory.create(
                 credentials['connector_type'],
                 credentials
             )
+            print(f"Connector {credentials['connector_type']} created")
 
             # 2. Setup connector and get cell data
             result = await connector.setup()
             if not result['success']:
                 await self.send_status(False, result['message'])
                 return result
+            print(f"Connector {credentials['connector_type']} setup successful")
 
             # 3. Execute setup code in notebook
             if result['cell']:
                 await code_executor(result['cell']['source'])
                 await self.send_status(True, 'Connector initialized successfully')
+            print(f"Connector {credentials['connector_type']} setup successful")
 
             return result
 

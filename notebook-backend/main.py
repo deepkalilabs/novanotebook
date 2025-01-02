@@ -4,7 +4,7 @@ import os
 from helpers.lambda_generator import lambda_generator
 from helpers.supabase import job_status
 from helpers.supabase.connector_credentials import get_connector_credentials, get_is_type_connected 
-from helpers.types import OutputExecutionMessage, OutputSaveMessage, OutputLoadMessage, OutputGenerateLambdaMessage, OutputPosthogSetupMessage
+from helpers.types import OutputExecutionMessage, OutputSaveMessage, OutputLoadMessage, OutputGenerateLambdaMessage, ConnectorResponse
 from uuid import UUID
 from helpers.notebook import notebook
 import logging
@@ -70,6 +70,7 @@ async def websocket_endpoint(websocket: WebSocket, session_id: str, notebook_id:
                 await websocket.send_json(output.model_dump())
  
             elif data['type'] == 'create_connector':
+                print("Creating connector", data)
                 credentials: ConnectorCredentials = {
                     "connector_type": data['connector_type'],
                     "user_id": data['user_id'],
@@ -77,7 +78,9 @@ async def websocket_endpoint(websocket: WebSocket, session_id: str, notebook_id:
                     "credentials": data['credentials']
                 }
                 response = await nb.handle_connector_request(credentials)
-                await websocket.send_json(response.model_dump())
+                output = ConnectorResponse(type='connector_created', success=response['success'], message=response['message'], cell=response['cell'])
+                print("output", output)
+                await websocket.send_json(output.model_dump())
                
             elif data['type'] == 'deploy_lambda':
                 # TODO: Better dependency management here.
