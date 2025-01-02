@@ -77,6 +77,9 @@ async def websocket_endpoint(websocket: WebSocket, session_id: str, notebook_id:
                     "notebook_id": data['notebook_id'],
                     "credentials": data['credentials']
                 }
+                print("Installing dependencies")
+                dependencies = await nb.execute_code(code='!pip install pydantic requests')
+                print("dependencies", dependencies)
                 response = await nb.handle_connector_request(credentials)
                 output = ConnectorResponse(type='connector_created', success=response['success'], message=response['message'], cell=response['cell'])
                 print("output", output)

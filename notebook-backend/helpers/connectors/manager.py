@@ -10,16 +10,20 @@ class ConnectorManager:
     """
     def __init__(self, websocket: Optional[WebSocket] = None):
         self.websocket = websocket
+        self._closed = False
 
     async def send_status(self, success: bool, message: str):
         """Send status update to frontend"""
-        if self.websocket:
-            await self.websocket.send_json({
-                'type': 'connector_status',
-                'success': success,
-                'message': message,
-                'cell': None
-            })
+        if self.websocket and not self._closed:
+            try:
+                await self.websocket.send_json({
+                    'type': 'connector_status',
+                    'success': success,
+                    'message': message,
+                    'cell': None
+                })
+            except RuntimeError:
+                self._closed = True
 
     async def setup_connector(
         self,
@@ -45,9 +49,17 @@ class ConnectorManager:
 
             # 3. Execute setup code in notebook
             if result['cell']:
-                await code_executor(result['cell']['source'])
-                await self.send_status(True, 'Connector initialized successfully')
-            print(f"Connector {credentials['connector_type']} setup successful")
+                try:
+                    await code_executor(result['cell']['source'])
+                    await self.send_status(True, 'Connector initialized successfully')
+                except Exception as exec_error:
+                    error_msg = f"Error executing setup code: {str(exec_error)}"
+                    await self.send_status(False, error_msg)
+                    return {
+                        'success': False,
+                        'message': error_msg,
+                        'cell': None
+                    }
 
             return result
 
@@ -57,5 +69,8 @@ class ConnectorManager:
                 'message': str(e),
                 'cell': None
             }
-            await self.send_status(False, str(e))
+            try:
+                await self.send_status(False, str(e))
+            except:
+                pass  # If we can't send the status, just continue
             return error_response 

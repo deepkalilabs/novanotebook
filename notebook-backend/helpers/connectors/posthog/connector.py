@@ -9,7 +9,7 @@ class PosthogConnector(BaseConnector):
     def get_setup_code(self):
         # Inject the connector module in the notebook cell (last cell). Label the cell as a connector cell.
         code = f"""
-        from connectors.services.posthog.posthog_service import PostHogService
+        from connectors.services.posthog.service import PostHogService
         from IPython import get_ipython
         # Initialize PostHog service
         posthog_service = PostHogService({self.credentials})
