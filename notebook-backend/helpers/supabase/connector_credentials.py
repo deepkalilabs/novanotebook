@@ -54,28 +54,24 @@ async def create_connector_credentials(user_id: str, notebook_id: str, connector
     if not user_id:
         return {
             'statusCode': 400,
-            'body': json.dumps({'error': 'User ID is required'}),
             'message': 'User ID is required'
         }
     
     if not notebook_id:
         return {
             'statusCode': 400,
-            'body': json.dumps({'error': 'Notebook ID is required'}),
             'message': 'Notebook ID is required'
         }
     
     if not connector_type:
         return {
             'statusCode': 400,
-            'body': json.dumps({'error': 'Connector type is required'}),
             'message': 'Connector type is required'
         }
     
     if not credentials:
         return {
             'statusCode': 400,
-            'body': json.dumps({'error': 'Credentials are required'}),
             'message': 'Credentials are required'
         }
     
@@ -97,7 +93,6 @@ async def create_connector_credentials(user_id: str, notebook_id: str, connector
         logger.error(f"Error creating connector credentials: {str(e)}")
         return {
             'statusCode': 500,
-            'body': json.dumps({'error': str(e)}),
             'message': str(e)
         }
 
@@ -117,14 +112,12 @@ def delete_connector_credentials(id: str):
         
         return {
             'statusCode': 200,
-            'body': json.dumps(response.data),
             'message': 'Connector credentials deleted successfully'
         }
     except Exception as e:
         logger.error(f"Error deleting connector credentials: {str(e)}")
         return {
             'statusCode': 500,
-            'body': json.dumps({'error': str(e)}),
             'message': 'Error deleting connector credentials'
         }
     
@@ -133,21 +126,18 @@ def get_is_type_connected(user_id: str, notebook_id: str, type: str):
     if not user_id:
         return {
             'statusCode': 400,
-            'body': json.dumps({'error': 'User ID is required'}),
             'message': 'User ID is required'
         }
     
     if not notebook_id:
         return {
             'statusCode': 400,
-            'body': json.dumps({'error': 'Notebook ID is required'}),
             'message': 'Notebook ID is required'
         }
     
     if not type:
         return {
             'statusCode': 400,
-            'body': json.dumps({'error': 'Type is required'}),
             'message': 'Type is required'
         }
     

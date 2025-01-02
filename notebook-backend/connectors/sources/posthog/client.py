@@ -9,11 +9,18 @@ import requests
 logger = logging.getLogger(__name__)
 class PostHogClient:
     def __init__(self, credentials: dict):
-        self.api_key = credentials['api_key']
-        self.base_url = credentials['base_url']
+        try:
+            self.api_key = credentials.get('apiKey') or credentials.get('api_key')
+            self.base_url = credentials.get('baseUrl') or credentials.get('base_url')
+            
+            if not self.api_key:
+                raise ValueError("Missing required credential: 'apiKey' or 'api_key'")
+            if not self.base_url:
+                raise ValueError("Missing required credential: 'baseUrl' or 'base_url'")
 
-
-        self.headers = {"Authorization": f"Bearer {self.api_key}"}
+            self.headers = {"Authorization": f"Bearer {self.api_key}"}
+        except Exception as e:
+            raise ValueError(f"Failed to initialize PostHog client: {str(e)}")
 
     def test_connection(self) -> Dict[str, Any]:
         """Test connection to PostHog by getting all organizations"""

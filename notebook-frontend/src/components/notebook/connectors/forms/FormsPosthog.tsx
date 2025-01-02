@@ -94,8 +94,9 @@ export default function FormsPosthog({onSuccess}: FormsPosthogProps) {
       createConnector(
         'posthog',
         {
-          apiKey: values.apiKey,
-          baseUrl: values.baseUrl,
+          api_key: values.apiKey,
+          base_url: values.baseUrl,
+          user_id: values.userId
         },
         values.userId,
         notebookId
