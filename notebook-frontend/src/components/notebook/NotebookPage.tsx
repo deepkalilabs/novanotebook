@@ -25,7 +25,6 @@ export default function NotebookPage({ notebookId, userId, name }: NotebookPageP
     deployCode,
     isConnected,
     connectionStatus,
-    posthogSetup
   } = useNotebookConnection({
     onOutput: updateCellOutput,
     onNotebookLoaded: (cells) => {
@@ -71,6 +70,20 @@ export default function NotebookPage({ notebookId, userId, name }: NotebookPageP
       userId: userId,
       name: name
     }
+    //TODO: Add a function to add a cell with a markdown type for the connector instructions
+    //onConnectorAdded={(type: CellType, connector_details: <connector_instructions>) => {
+    //  addCell(type)
+    //  updateCellCode(connector_details)
+    //  handleSave(name)
+
+    // toast({
+    //   title: "Connector added",
+    //   description: connector_details,
+    //   variant: "default",
+    //   duration: 1000
+    // })
+    
+    //}}
   });
 
   useEffect(() => {
@@ -98,8 +111,9 @@ export default function NotebookPage({ notebookId, userId, name }: NotebookPageP
       //Iterate over connectors, if the connector has_seen_doc is false, inject the last entry cell or show a alert message to direct the user to a doc
       //If the connector has_seen_doc is true, do nothing
       connectors.forEach(connector => {
-        if (!connector?.has_seen_doc) {
-          addCell(CellType.Entry)
+        if (!connector) {
+          console.log("Adding to notebook")
+          console.log(connectors)
         }
       })
     }
@@ -154,7 +168,6 @@ export default function NotebookPage({ notebookId, userId, name }: NotebookPageP
                 isConnected={isConnected}
                 allCells={cells}
                 onHandleDeploy={handleDeploy}
-                posthogSetup={posthogSetup}
               />
             </div>
 

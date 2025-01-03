@@ -1,5 +1,6 @@
 from ..base import BaseConnector
 from helpers.types import ConnectorResponse
+from helpers.supabase.connector_credentials import create_connector_credentials
 import logging
 
 logger = logging.getLogger(__name__)
@@ -10,9 +11,9 @@ class PosthogConnector(BaseConnector):
         # Extract the nested credentials
         self.user_id = credentials.get('user_id')
         self.notebook_id = credentials.get('notebook_id')
-        super().__init__(credentials.get('credentials', {}))  # Pass the nested credentials to super
         self.connector_type = 'posthog'
-
+        self.credentials = credentials.get('credentials')
+         
     async def setup(self) -> ConnectorResponse:
         try:
             logger.info(f"Setting up PosthogConnector with credentials: {self.credentials}")
@@ -24,27 +25,38 @@ class PosthogConnector(BaseConnector):
                     'cell': None
                 }
             
-            if 'apiKey' not in self.credentials:  # Note: Using camelCase here since that's what's in the nested credentials
-                logger.error(f"Missing apiKey in credentials. Available keys: {self.credentials.keys()}")
+            if 'api_key' not in self.credentials:
+                logger.error(f"Missing api_key in credentials. Available keys: {self.credentials.keys()}")
                 return {
                     'success': False,
-                    'message': "Missing required credential: 'apiKey'. Available keys: " + 
+                    'message': "Missing required credential: 'api_key'. Available keys: " + 
                               ", ".join(self.credentials.keys()),
                     'cell': None
                 }
+            
+            # Submit connector credentials to database
+            response = await create_connector_credentials(
+                user_id=self.user_id,
+                notebook_id=self.notebook_id,
+                connector_type=self.connector_type,
+                credentials=self.credentials
+            )
+            logger.info(f"Connector credentials response: {response}")
 
-            transformed_credentials = {
-                'api_key': self.credentials['apiKey'],  # Transform from camelCase to snake_case
-                'base_url': self.credentials['baseUrl']
-            }
-            logger.info(f"Using credentials: {transformed_credentials}")
+            # Map the response to our expected format
+            if response['statusCode'] != 200:
+                return {
+                    'success': False,
+                    'message': response['message'],
+                    'cell': None
+                }
 
             # Use the credentials in the cell source
             cell_source = f"""
             from connectors.services.posthog.service import PostHogService
             from IPython import get_ipython
             # Initialize PostHog service
-            posthog_service = PostHogService({transformed_credentials})
+            posthog_service = PostHogService({self.credentials})
             # Get IPython instance and inject into namespace
             ipython = get_ipython()
             ipython.user_ns['posthog_service'] = posthog_service
@@ -79,6 +91,26 @@ class PosthogConnector(BaseConnector):
 
     def get_connector_docstring(self):
         """
-        Return the connector docstring.
+        Return the connector docstring that will be displayed in the notebook cell.
         """
-        return "Posthog docstring"
+        doc = """
+        # Posthog notebook connector
+
+        1. To fetch raw data from PostHog, use the library `posthog_client`. Link: https://github.com/deepkalilabs/cosmicnotebook/tree/main/docs`
+        2. To fetch transformed data using our own format, use `posthog_adapter`. Link: https://github.com/deepkalilabs/cosmicnotebook/tree/main/docs
+        3. To try own our own AI recipes, use `posthog_service`. Link: https://github.com/deepkalilabs/cosmicnotebook/tree/main/docs
+
+        # Try out the following examples:
+    
+        ## Get all organizations:
+        Description: Fetch all organizations from PostHog.
+        ```python
+        posthog_client.get_organizations()
+
+        ## Get a project:
+        Description: Fetch a project from PostHog.
+        ```python
+        posthog_client.get_project(project_id)
+        ```
+        """
+        return doc

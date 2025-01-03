@@ -7,6 +7,7 @@ export const useNotebookStore = create<NotebookStore>((set) => ({
   cells: [],
   maxExecutionCount: 0,
   
+  //TODO: Add a function to add a cell with a markdown type
   addCell: (type: CellType = 'code') => set((state) => ({
     cells: [...state.cells, {
       id: uuidv4(),

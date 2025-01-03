@@ -2,6 +2,9 @@ from typing import Optional
 from fastapi import WebSocket
 from .factory import ConnectorFactory
 from ..types import ConnectorResponse, ConnectorCredentials
+import logging
+
+logging.basicConfig(level=logging.INFO)
 
 class ConnectorManager:
     """
@@ -43,18 +46,29 @@ class ConnectorManager:
             # 2. Setup connector and get cell data
             result = await connector.setup()
             if not result['success']:
-                await self.send_status(False, result['message'])
                 return result
             print(f"Connector {credentials['connector_type']} setup successful")
 
             # 3. Execute setup code in notebook
             if result['cell']:
                 try:
-                    await code_executor(result['cell']['source'])
-                    await self.send_status(True, 'Connector initialized successfully')
+                    #Execute the code in the notebook, return docstring if successful
+                    logging.info("Executing posthog connection source")
+                    execution_output = await code_executor(result['cell']['source'])
+                    logging.info("Result of executing cell: %s", execution_output)
+
+                    return {
+                        'success': True,
+                        'message': 'Connector initialized successfully',
+                        'cell': {
+                            'cell_type': 'connector',
+                            'source': connector.get_connector_docstring(),
+                            'outputs': [execution_output] if execution_output else []
+                        }
+                    }
                 except Exception as exec_error:
                     error_msg = f"Error executing setup code: {str(exec_error)}"
-                    await self.send_status(False, error_msg)
+                    logging.error(error_msg)
                     return {
                         'success': False,
                         'message': error_msg,
@@ -69,8 +83,4 @@ class ConnectorManager:
                 'message': str(e),
                 'cell': None
             }
-            try:
-                await self.send_status(False, str(e))
-            except:
-                pass  # If we can't send the status, just continue
-            return error_response 
+            return error_response

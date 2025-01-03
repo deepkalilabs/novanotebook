@@ -44,6 +44,8 @@ export default function FormsPosthog({onSuccess}: FormsPosthogProps) {
       //1. Add the connector to the connectors list
       //2. Update the notebook with the new connector
       onSuccess();
+      console.log("onSuccess called")
+      alert("PostHog connected")
 
 
       toast({
@@ -96,7 +98,6 @@ export default function FormsPosthog({onSuccess}: FormsPosthogProps) {
         {
           api_key: values.apiKey,
           base_url: values.baseUrl,
-          user_id: values.userId
         },
         values.userId,
         notebookId

@@ -115,6 +115,9 @@ export function useNotebookConnection({
         case 'connector_created':
           console.log("Received connector_created")
           onConnectorCreated?.(data as ConnectorCredentials);
+          //TODO: Show a new cell with the connector instructions. Use addCell function
+          //addCell('markdown', <Connector instructions>);
+
           break;
           
         case 'error':

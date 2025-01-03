@@ -1,5 +1,5 @@
 // app/types.ts
-export type CellType = 'code' | 'markdown' | 'file';
+export type CellType = 'code' | 'markdown' | 'file' | 'connector';
 
 export interface NotebookCell {
   id: string;
@@ -18,7 +18,6 @@ export interface NotebookToolbarProps {
   isConnected: boolean;
   allCells: NotebookCell[];
   onHandleDeploy?: () => Promise<void>;
-  posthogSetup: (userId: string, apiKey: string, baseUrl: string) => void; //TODO: Abstract to add more connectors
 }
 
 export interface NotebookStore {

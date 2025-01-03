@@ -31,7 +31,6 @@ export function NotebookToolbar({
   isConnected,
   allCells,
   onHandleDeploy,
-  posthogSetup,
 }: NotebookToolbarProps) {
 
   const [ isAddCellOpen, setIsAddCellOpen ] = useState(false);
@@ -118,7 +117,7 @@ export function NotebookToolbar({
 
       <SaveNotebookButton onHandleSave={onHandleSave} />
 
-      <ConnectorsButton posthogSetup={posthogSetup} />
+      <ConnectorsButton/>
 
       <ShowCodeButton allCells={allCells} />
       
