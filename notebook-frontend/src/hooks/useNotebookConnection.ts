@@ -57,6 +57,7 @@ export function useNotebookConnection({
       onError?.("Failed to connect to Python kernel");
     },
     shouldReconnect: (closeEvent) => {
+      console.log("shouldReconnect", closeEvent)
       setIsReconnecting(true);
       return true;
     },
@@ -160,7 +161,7 @@ export function useNotebookConnection({
   }, [sendMessage]);
 
 
-  const createConnector = useCallback((connectorType: string, credentials: any, userId: string, notebookId: string) => {
+  const createConnector = useCallback((connectorType: string, credentials: Record<string, string | number | boolean>, userId: string, notebookId: string) => {
     sendMessage(JSON.stringify({
       type: 'create_connector',
       connector_type: connectorType,

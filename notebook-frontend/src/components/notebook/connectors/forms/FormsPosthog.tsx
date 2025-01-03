@@ -8,13 +8,11 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { z } from 'zod'
 import { useForm } from 'react-hook-form'
-import { useUserStore, useConnectorsStore, useNotebookStore } from '@/app/store'
-import { useNotebookConnection } from '@/hooks/useNotebookConnection'
+import { useUserStore, useConnectorsStore } from '@/app/store'
 import { getApiUrl } from '@/app/lib/config'
 
 interface FormsPosthogProps {
-  onSuccess: () => void;
-  createConnector: (connector: string, data: any, userId: string, notebookId: string) => void;
+  createConnector: (connector: string, data: Record<string, string | number | boolean>, userId: string, notebookId: string) => void;
 }
 
 
@@ -24,7 +22,7 @@ const formSchema = z.object({
   userId: z.string().min(5, { message: "User ID is required" })
 })
 
-export default function FormsPosthog({onSuccess, createConnector}: FormsPosthogProps) {
+export default function FormsPosthog({createConnector}: FormsPosthogProps) {
   const { user } = useUserStore();
   const userId = user?.id || '';
   const notebookId = window.location.pathname.split('/').pop()?.split('?')[0] || '';
@@ -79,7 +77,6 @@ export default function FormsPosthog({onSuccess, createConnector}: FormsPosthogP
         values.userId,
         notebookId
       );
-      onSuccess();
     } catch (err) {
       console.error("Error connecting to PostHog", err);
       form.setError("root", { 

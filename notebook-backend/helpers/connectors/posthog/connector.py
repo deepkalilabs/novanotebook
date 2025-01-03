@@ -81,9 +81,9 @@ posthog_service = PostHogService({self.credentials})
 # Get IPython instance and inject into namespace
 ipython = get_ipython()
 if ipython:
-    globals()['posthog_service'] = posthog_service
-    globals()['posthog_client'] = posthog_service.client
-    globals()['posthog_adapter'] = posthog_service.adapter
+    ipython.user_ns['posthog_service'] = posthog_service
+    ipython.user_ns['posthog_client'] = posthog_service.client
+    ipython.user_ns['posthog_adapter'] = posthog_service.adapter
 
 print("PostHog connector initialized successfully! ✅")
 print("Available objects: posthog_service, posthog_client, posthog_adapter")

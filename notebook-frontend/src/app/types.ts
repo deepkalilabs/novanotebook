@@ -83,9 +83,8 @@ export interface NotebookConnectionProps {
   onError?: (error: string) => void;
   onNotebookDeployed?: (data: OutputDeployMessage) => void;
   notebookDetails?: NotebookDetails;
-  onPosthogSetup?: (data: OutputPosthogSetupMessage) => void;
   onConnectorStatus?: (status: ConnectorStatus) => void;
-  onConnectorCreated?: (cell: any) => void;
+  onConnectorCreated?: (data: ConnectorResponse) => void;
 }
 
 export interface WebSocketMessage {
@@ -136,6 +135,15 @@ export interface OutputDeployMessage {
     output: JSON;
 }
 
+export interface ConnectorResponse {
+    type: string;
+    success: boolean;
+    message: string;
+    cell: NotebookCell;
+    code: string;
+    docstring: string;
+}
+
 export interface Job {
     completed: boolean | null;
     completed_at: string | null;
@@ -161,7 +169,9 @@ export interface OutputConnectorCreatedMessage {
     type: string;
     success: boolean;
     message: string;
-    output: JSON;
+    cell: NotebookCell;
+    code: string;
+    docstring: string;
 }
 
 export interface User {

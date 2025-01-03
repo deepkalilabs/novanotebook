@@ -6,7 +6,6 @@ import { Plus } from 'lucide-react'
 import { FormsPosthog, FormsDbt, FormsClickhouse, FormsSnowflake, FormsLooker, FormsAmplitude, FormsRedshift} from './forms'
 import { useNotebookConnection } from '@/hooks/useNotebookConnection';
 import { useNotebookStore } from '@/app/store';
-import { CellType } from '@/app/types'
 import { v4 as uuidv4 } from 'uuid';
 
 
@@ -22,7 +21,6 @@ export function ConnectorsButton() {
   const [open, setOpen] = useState(false);
   const [selectedSource, setSelectedSource] = useState<string | null>(null);
   const { addCell, updateCellCode } = useNotebookStore();
-  const store = useNotebookStore.getState();
   const { createConnector, executeCode } = useNotebookConnection({
     onConnectorCreated: async (response) => {
       console.log("Connector created in ConnectorsButton:", response);
@@ -55,7 +53,7 @@ export function ConnectorsButton() {
   const handleReset = () => setSelectedSource(null);
 
   const [dataSources] = useState<DataSource[]>([
-    { id: 'posthog', name: 'PostHog', available: true, icon: `https://img.logo.dev/posthog.com?token=${process.env.NEXT_PUBLIC_LOGO_DEV_TOKEN}&retina=true`, form: <FormsPosthog onSuccess={handleSuccess} createConnector={createConnector}/> },
+    { id: 'posthog', name: 'PostHog', available: true, icon: `https://img.logo.dev/posthog.com?token=${process.env.NEXT_PUBLIC_LOGO_DEV_TOKEN}&retina=true`, form: <FormsPosthog  createConnector={createConnector}/> },
     { id: 'dbt', name: 'dbt', available: false, icon: `https://img.logo.dev/dbt.com?token=${process.env.NEXT_PUBLIC_LOGO_DEV_TOKEN}&retina=true`, form: <FormsDbt /> },
     { id: 'clickhouse', name: 'ClickHouse', available: false, icon: `https://img.logo.dev/clickhouse.com?token=${process.env.NEXT_PUBLIC_LOGO_DEV_TOKEN}&retina=true`, form: <FormsClickhouse /> },
     { id: 'snowflake', name: 'Snowflake', available: false, icon: `https://img.logo.dev/snowflake.com?token=${process.env.NEXT_PUBLIC_LOGO_DEV_TOKEN}&retina=true`, form: <FormsSnowflake /> },
