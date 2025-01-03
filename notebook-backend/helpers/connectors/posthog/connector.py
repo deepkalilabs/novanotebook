@@ -22,7 +22,8 @@ class PosthogConnector(BaseConnector):
                 return {
                     'success': False,
                     'message': f"Invalid credentials format. Expected dict, got {type(self.credentials)}",
-                    'cell': None
+                    'code': None,
+                    'docstring': None
                 }
             
             if 'api_key' not in self.credentials:
@@ -31,7 +32,8 @@ class PosthogConnector(BaseConnector):
                     'success': False,
                     'message': "Missing required credential: 'api_key'. Available keys: " + 
                               ", ".join(self.credentials.keys()),
-                    'cell': None
+                    'code': None,
+                    'docstring': None
                 }
             
             # Submit connector credentials to database
@@ -48,46 +50,46 @@ class PosthogConnector(BaseConnector):
                 return {
                     'success': False,
                     'message': response['message'],
-                    'cell': None
+                    'code': None,
+                    'docstring': None
                 }
-
-            # Use the credentials in the cell source
-            cell_source = f"""
-            from connectors.services.posthog.service import PostHogService
-            from IPython import get_ipython
-            # Initialize PostHog service
-            posthog_service = PostHogService({self.credentials})
-            # Get IPython instance and inject into namespace
-            ipython = get_ipython()
-            ipython.user_ns['posthog_service'] = posthog_service
-            ipython.user_ns['posthog_client'] = posthog_service.client
-            ipython.user_ns['posthog_adapter'] = posthog_service.adapter
-
-            print("Posthog connected ✅! Use posthog_service, posthog_client, posthog_adapter to access the connector.")
-            """
 
             return {
                 'success': True,
-                'message': 'Connector setup successful',
-                'cell': {
-                    'cell_type': 'connector',
-                    'connector_type': 'posthog',
-                    'source': cell_source,
-                    'outputs': []
-                }
+                'message': 'Connector submitted to database',
+                'code': self.get_connector_code(),
+                'docstring': self.get_connector_docstring()
             }
         except KeyError as e:
             return {
                 'success': False,
                 'message': f"Missing required credential: {str(e)}. Please provide both 'apiKey' and 'baseUrl'.",
-                'cell': None
+                'code': None,
+                'docstring': None
             }
         except Exception as e:
             return {
                 'success': False,
                 'message': f"Failed to setup PostHog connector: {str(e)}",
-                'cell': None
+                'code': None,
+                'docstring': None
             }
+
+    def get_connector_code(self):
+        code = f"""
+        from connectors.services.posthog.service import PostHogService
+        from IPython import get_ipython
+        # Initialize PostHog service
+        posthog_service = PostHogService({self.credentials})
+        # Get IPython instance and inject into namespace
+        ipython = get_ipython()
+        ipython.user_ns['posthog_service'] = posthog_service
+        ipython.user_ns['posthog_client'] = posthog_service.client
+        ipython.user_ns['posthog_adapter'] = posthog_service.adapter
+
+        print("Posthog connected ✅!")
+        """
+        return code
 
     def get_connector_docstring(self):
         """
@@ -96,9 +98,9 @@ class PosthogConnector(BaseConnector):
         doc = """
         # Posthog notebook connector
 
-        1. To fetch raw data from PostHog, use the library `posthog_client`. Link: https://github.com/deepkalilabs/cosmicnotebook/tree/main/docs`
-        2. To fetch transformed data using our own format, use `posthog_adapter`. Link: https://github.com/deepkalilabs/cosmicnotebook/tree/main/docs
-        3. To try own our own AI recipes, use `posthog_service`. Link: https://github.com/deepkalilabs/cosmicnotebook/tree/main/docs
+        1. To fetch raw data from PostHog, use the library `posthog_client`. Link: https://github.com/deepkalilabs/cosmicnotebook/tree/main/docs/posthog/client`
+        2. To fetch transformed data using our own format, use `posthog_adapter`. Link: https://github.com/deepkalilabs/cosmicnotebook/tree/main/docs/posthog/adapter`
+        3. To try own our own AI recipes, use `posthog_service`. Link: https://github.com/deepkalilabs/cosmicnotebook/tree/main/docs/posthog/service`
 
         # Try out the following examples:
     

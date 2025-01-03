@@ -1,9 +1,10 @@
 "use client"
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 import { Plus } from 'lucide-react'
 import { FormsPosthog, FormsDbt, FormsClickhouse, FormsSnowflake, FormsLooker, FormsAmplitude, FormsRedshift} from './forms'
+import { useNotebookConnection } from '@/hooks/useNotebookConnection';
 
 interface DataSource {
   id: string;
@@ -14,18 +15,27 @@ interface DataSource {
 }
 
 export function ConnectorsButton() {
- 
-
-  const [selectedSource, setSelectedSource] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
-  const handleReset = () => setSelectedSource(null);
+  const [selectedSource, setSelectedSource] = useState<string | null>(null);
+  const { createConnector } = useNotebookConnection({
+    onConnectorCreated: (response) => {
+      console.log("Connector created in ConnectorsButton:", response);
+      if (response.success) {
+        handleSuccess();
+      }
+    }
+  });
 
-  const handleSuccess = () => {
+  const handleSuccess = useCallback(() => {
+    // Don't create a new connection, just close the dialog
     setSelectedSource(null);
     setOpen(false);
-  };
+  }, []);
+
+  const handleReset = () => setSelectedSource(null);
+
   const [dataSources] = useState<DataSource[]>([
-    { id: 'posthog', name: 'PostHog', available: true, icon: `https://img.logo.dev/posthog.com?token=${process.env.NEXT_PUBLIC_LOGO_DEV_TOKEN}&retina=true`, form: <FormsPosthog onSuccess={handleSuccess}/> },
+    { id: 'posthog', name: 'PostHog', available: true, icon: `https://img.logo.dev/posthog.com?token=${process.env.NEXT_PUBLIC_LOGO_DEV_TOKEN}&retina=true`, form: <FormsPosthog onSuccess={handleSuccess} createConnector={createConnector}/> },
     { id: 'dbt', name: 'dbt', available: false, icon: `https://img.logo.dev/dbt.com?token=${process.env.NEXT_PUBLIC_LOGO_DEV_TOKEN}&retina=true`, form: <FormsDbt /> },
     { id: 'clickhouse', name: 'ClickHouse', available: false, icon: `https://img.logo.dev/clickhouse.com?token=${process.env.NEXT_PUBLIC_LOGO_DEV_TOKEN}&retina=true`, form: <FormsClickhouse /> },
     { id: 'snowflake', name: 'Snowflake', available: false, icon: `https://img.logo.dev/snowflake.com?token=${process.env.NEXT_PUBLIC_LOGO_DEV_TOKEN}&retina=true`, form: <FormsSnowflake /> },

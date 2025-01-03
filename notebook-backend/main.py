@@ -28,13 +28,10 @@ notebook_sessions = {}
 
 @app.websocket("/ws/{session_id}/{notebook_id}")
 async def websocket_endpoint(websocket: WebSocket, session_id: str, notebook_id: str):
-
     print(f"New connection with session ID: {session_id} and notebook ID: {notebook_id}")
     
     await websocket.accept()
     
-    print(f"New connection with session ID: {session_id} and notebook ID: {notebook_id}")
-
     try:
         while True:
             if notebook_id not in notebook_sessions:
@@ -44,12 +41,9 @@ async def websocket_endpoint(websocket: WebSocket, session_id: str, notebook_id:
                 notebook_sessions[notebook_id] = {'km': kernel_manager, 'kc': kernel_client, 'nb': nb}
             
             nb = notebook_sessions[notebook_id]['nb']
-
             data = await websocket.receive_json()
             
             if data['type'] == 'execute':
-
-
                 code = data['code']
                 output = await nb.execute_code(code=code)
 
@@ -70,20 +64,27 @@ async def websocket_endpoint(websocket: WebSocket, session_id: str, notebook_id:
                 await websocket.send_json(output.model_dump())
  
             elif data['type'] == 'create_connector':
-                print("Creating connector", data)
-                credentials: ConnectorCredentials = {
-                    "connector_type": data['connector_type'],
-                    "user_id": data['user_id'],
-                    "notebook_id": data['notebook_id'],
-                    "credentials": data['credentials']
-                }
-                print("Installing dependencies")
-                dependencies = await nb.execute_code(code='!pip install pydantic requests')
-                print("dependencies", dependencies)
-                response = await nb.handle_connector_request(credentials)
-                output = ConnectorResponse(type='connector_created', success=response['success'], message=response['message'], cell=response['cell'])
-                print("output", output)
-                await websocket.send_json(output.model_dump())
+                try:
+                    print("Creating connector", data)
+                    credentials: ConnectorCredentials = {
+                        "connector_type": data['connector_type'],
+                        "user_id": data['user_id'],
+                        "notebook_id": data['notebook_id'],
+                        "credentials": data['credentials']
+                    }
+                    print("Installing dependencies")
+                    dependencies = await nb.execute_code(code='!pip install pydantic requests')
+                    print("dependencies", dependencies)
+                    output = await nb.handle_connector_request(credentials)
+                    print("Connector created response", output)
+                    await websocket.send_json(output.model_dump())
+                except Exception as e:
+                    logging.error(f"Error creating connector: {e}")
+                    await websocket.send_json({
+                        'type': 'error',
+                        'message': str(e)
+                    })
+                continue  # Continue listening for more messages
                
             elif data['type'] == 'deploy_lambda':
                 # TODO: Better dependency management here.
@@ -122,10 +123,19 @@ async def websocket_endpoint(websocket: WebSocket, session_id: str, notebook_id:
             
     except WebSocketDisconnect:
         logging.info(f"WebSocket disconnected for session ID: {session_id} and notebook ID: {notebook_id}")
-        pass
+    except Exception as e:
+        logging.error(f"Error in websocket connection: {e}")
+        try:
+            await websocket.send_json({
+                'type': 'error',
+                'message': str(e)
+            })
+        except:
+            pass
     finally:
-        # Optionally, you can decide when to shut down the kernel
-        pass
+        if notebook_id in notebook_sessions:
+            # Clean up kernel if needed
+            pass
 
 @app.get("/status/jobs/{user_id}")
 async def status_endpoint_jobs_for_user(user_id: UUID):

@@ -157,7 +157,7 @@ export interface FileUploadProps {
   onFileSelect: (fileName: string, content: { cells: any[] }) => void;
 }
 
-export interface OutputPosthogSetupMessage {
+export interface OutputConnectorCreatedMessage {
     type: string;
     success: boolean;
     message: string;

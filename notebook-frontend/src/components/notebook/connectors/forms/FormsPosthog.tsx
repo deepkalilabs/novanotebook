@@ -8,13 +8,13 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { z } from 'zod'
 import { useForm } from 'react-hook-form'
-import { useUserStore, useConnectorsStore } from '@/app/store'
+import { useUserStore, useConnectorsStore, useNotebookStore } from '@/app/store'
 import { useNotebookConnection } from '@/hooks/useNotebookConnection'
 import { getApiUrl } from '@/app/lib/config'
-import { toast } from '@/hooks/use-toast'
 
 interface FormsPosthogProps {
   onSuccess: () => void;
+  createConnector: (connector: string, data: any, userId: string, notebookId: string) => void;
 }
 
 
@@ -24,39 +24,12 @@ const formSchema = z.object({
   userId: z.string().min(5, { message: "User ID is required" })
 })
 
-export default function FormsPosthog({onSuccess}: FormsPosthogProps) {
+export default function FormsPosthog({onSuccess, createConnector}: FormsPosthogProps) {
   const { user } = useUserStore();
   const userId = user?.id || '';
   const notebookId = window.location.pathname.split('/').pop()?.split('?')[0] || '';
-  console.log("notebookId", notebookId)
-  const { createConnector } = useNotebookConnection({
-    onConnectorStatus: (status) => {
-      console.log("Received connector_status", status)
-      toast({
-        title: status.success ? "PostHog connected" : "Failed to connect to PostHog",
-        description: status.message,
-        variant: status.success ? "default" : "destructive"
-      })
-    },
-    onConnectorCreated: (cell) => {
-      console.log("Received connector_created", cell)
-      //TODO: Handle the connector created event
-      //1. Add the connector to the connectors list
-      //2. Update the notebook with the new connector
-      onSuccess();
-      console.log("onSuccess called")
-      alert("PostHog connected")
-
-
-      toast({
-        title: "PostHog connected",
-        description: "PostHog is now connected to your notebook",
-        variant: "default"
-      })
-    }
-  });
+  const [isConnecting, setIsConnecting] = useState(false);
   const { connectors } = useConnectorsStore();
-  const [isConnecting, setIsConnecting] = useState(false)
 
 
   useEffect(() => {
@@ -70,7 +43,7 @@ export default function FormsPosthog({onSuccess}: FormsPosthogProps) {
       apiKey: '',
       baseUrl: 'https://us.posthog.com',
     },
-  })
+  });
 
   //TODO: Possibly enable multiple posthog connectors for different API keys. This is a temporary fix to prevent duplicate connectors.
   //If the connector is already in the list, don't add it again
@@ -86,13 +59,17 @@ export default function FormsPosthog({onSuccess}: FormsPosthogProps) {
       console.log("isConnected", isConnected)
       
       if (isConnected) {
-        form.setError("root", { message: "PostHog is already connected. Support for multiple connections is in the roadmap. Need this feature now!? Contact us at support@trycosmic.ai" });
+        form.setError("root", { 
+          message: "PostHog is already connected. Support for multiple connections is in the roadmap." 
+        });
         return;
       }
+
       if (!notebookId) {
         form.setError("root", { message: "Invalid notebook ID" });
         return;
       }
+
       createConnector(
         'posthog',
         {
@@ -102,14 +79,16 @@ export default function FormsPosthog({onSuccess}: FormsPosthogProps) {
         values.userId,
         notebookId
       );
+      onSuccess();
     } catch (err) {
-      console.error("Error connecting to PostHog", err)
-      form.setError("root", { message: "Failed to connect to PostHog. Please check your credentials." });
+      console.error("Error connecting to PostHog", err);
+      form.setError("root", { 
+        message: "Failed to connect to PostHog. Please check your credentials." 
+      });
     } finally {
       setIsConnecting(false);
     }
   };
-
 
   return (  
     

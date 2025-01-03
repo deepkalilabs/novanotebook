@@ -65,25 +65,15 @@ export default function NotebookPage({ notebookId, userId, name }: NotebookPageP
         variant: "destructive"
       });
     },
+    onConnectorCreated: (response) => {
+      console.log("Received connector_created on NotebookPage", response);
+      alert(response)
+    },
     notebookDetails: {
       notebookId: notebookId,
       userId: userId,
       name: name
     }
-    //TODO: Add a function to add a cell with a markdown type for the connector instructions
-    //onConnectorAdded={(type: CellType, connector_details: <connector_instructions>) => {
-    //  addCell(type)
-    //  updateCellCode(connector_details)
-    //  handleSave(name)
-
-    // toast({
-    //   title: "Connector added",
-    //   description: connector_details,
-    //   variant: "default",
-    //   duration: 1000
-    // })
-    
-    //}}
   });
 
   useEffect(() => {

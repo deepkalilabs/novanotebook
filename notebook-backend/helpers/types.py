@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, Dict, Any
 
 class OutputExecutionMessage(BaseModel):
     type: str
@@ -50,9 +50,12 @@ class SupabaseConnectorCredentialList(BaseModel):
 
 
 class ConnectorResponse(BaseModel):
+    type: str
     success: bool
     message: str
-    cell: Optional[dict] # Cell data to inject
+    cell: Optional[Dict[str, Any]] = None
+    code: Optional[str] = None
+    docstring: Optional[str] = None
 
 class ConnectorCredentials(BaseModel):
     user_id: str
