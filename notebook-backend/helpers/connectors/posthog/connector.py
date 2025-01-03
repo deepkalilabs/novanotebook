@@ -1,6 +1,7 @@
 from ..base import BaseConnector
 from helpers.types import ConnectorResponse
 from helpers.supabase.connector_credentials import create_connector_credentials
+from connectors.services.posthog.service import PostHogService
 import logging
 
 logger = logging.getLogger(__name__)
@@ -45,7 +46,6 @@ class PosthogConnector(BaseConnector):
             )
             logger.info(f"Connector credentials response: {response}")
 
-            # Map the response to our expected format
             if response['statusCode'] != 200:
                 return {
                     'success': False,
@@ -56,18 +56,13 @@ class PosthogConnector(BaseConnector):
 
             return {
                 'success': True,
-                'message': 'Connector submitted to database',
+                'message': 'Posthog submitted to database',
                 'code': self.get_connector_code(),
                 'docstring': self.get_connector_docstring()
             }
-        except KeyError as e:
-            return {
-                'success': False,
-                'message': f"Missing required credential: {str(e)}. Please provide both 'apiKey' and 'baseUrl'.",
-                'code': None,
-                'docstring': None
-            }
+
         except Exception as e:
+            logger.error(f"Error in setup: {e}")
             return {
                 'success': False,
                 'message': f"Failed to setup PostHog connector: {str(e)}",
@@ -77,19 +72,23 @@ class PosthogConnector(BaseConnector):
 
     def get_connector_code(self):
         code = f"""
-        from connectors.services.posthog.service import PostHogService
-        from IPython import get_ipython
-        # Initialize PostHog service
-        posthog_service = PostHogService({self.credentials})
-        # Get IPython instance and inject into namespace
-        ipython = get_ipython()
-        ipython.user_ns['posthog_service'] = posthog_service
-        ipython.user_ns['posthog_client'] = posthog_service.client
-        ipython.user_ns['posthog_adapter'] = posthog_service.adapter
+from connectors.services.posthog.service import PostHogService
+from IPython import get_ipython
 
-        print("Posthog connected ✅!")
-        """
-        return code
+# Initialize PostHog service
+posthog_service = PostHogService({self.credentials})
+
+# Get IPython instance and inject into namespace
+ipython = get_ipython()
+if ipython:
+    globals()['posthog_service'] = posthog_service
+    globals()['posthog_client'] = posthog_service.client
+    globals()['posthog_adapter'] = posthog_service.adapter
+
+print("PostHog connector initialized successfully! ✅")
+print("Available objects: posthog_service, posthog_client, posthog_adapter")
+"""
+        return code.lstrip()
 
     def get_connector_docstring(self):
         """
@@ -108,11 +107,6 @@ class PosthogConnector(BaseConnector):
         Description: Fetch all organizations from PostHog.
         ```python
         posthog_client.get_organizations()
-
-        ## Get a project:
-        Description: Fetch a project from PostHog.
-        ```python
-        posthog_client.get_project(project_id)
         ```
         """
         return doc

@@ -23,7 +23,7 @@ export interface NotebookToolbarProps {
 export interface NotebookStore {
   cells: NotebookCell[];
   maxExecutionCount: number;
-  addCell: (type: CellType) => void;
+  addCell: (type: CellType, id?: string) => void;
   updateCellCode: (id: string, code: string) => void;
   updateCellOutput: (id: string, output: string) => void;
   deleteCell: (id: string) => void;

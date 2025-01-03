@@ -5,6 +5,10 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/co
 import { Plus } from 'lucide-react'
 import { FormsPosthog, FormsDbt, FormsClickhouse, FormsSnowflake, FormsLooker, FormsAmplitude, FormsRedshift} from './forms'
 import { useNotebookConnection } from '@/hooks/useNotebookConnection';
+import { useNotebookStore } from '@/app/store';
+import { CellType } from '@/app/types'
+import { v4 as uuidv4 } from 'uuid';
+
 
 interface DataSource {
   id: string;
@@ -17,11 +21,27 @@ interface DataSource {
 export function ConnectorsButton() {
   const [open, setOpen] = useState(false);
   const [selectedSource, setSelectedSource] = useState<string | null>(null);
-  const { createConnector } = useNotebookConnection({
-    onConnectorCreated: (response) => {
+  const { addCell, updateCellCode } = useNotebookStore();
+  const store = useNotebookStore.getState();
+  const { createConnector, executeCode } = useNotebookConnection({
+    onConnectorCreated: async (response) => {
       console.log("Connector created in ConnectorsButton:", response);
       if (response.success) {
         handleSuccess();
+        
+        // Add cells
+        const codeCellId = uuidv4();
+        const markdownCellId = uuidv4();
+        
+        addCell('code', codeCellId);
+        addCell('markdown', markdownCellId);
+
+        // Update cells directly with their IDs
+        executeCode(codeCellId, response.code);
+        updateCellCode(codeCellId, response.code);
+        updateCellCode(markdownCellId, response.docstring);
+      } else {
+        console.error("Error creating connector:", response.message);
       }
     }
   });

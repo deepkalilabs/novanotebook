@@ -51,20 +51,16 @@ class ConnectorManager:
                     cell=None,
                     code=None,
                     docstring=None
-                )
-            
-            # 3. Execute code
-            code_result = await code_executor(result['code'])
-            print("Executed code", code_result)
+                )           
 
-            # 4. Return response
+            # 3. Return response
             return ConnectorResponse(
                 type='connector_created',
                 success=True,
-                message=result['message'],
+                message='Ready to use posthog connector',
                 cell={  # cell needs to be a dictionary
-                    'cell_type': 'markdown',
-                    'source': result['docstring'],
+                    'cell_type': 'code',
+                    'source': result['code'],
                     'outputs': []
                 },
                 code=result['code'],

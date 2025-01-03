@@ -8,7 +8,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { NotebookCell, OutputDeployMessage, NotebookConnectionProps } from '@/app/types';
 import { OutputExecutionMessage, OutputSaveMessage, OutputLoadMessage, OutputConnectorCreatedMessage } from '@/app/types';
 import { useToast } from '@/hooks/use-toast';
-import { useWebSocketContext } from '@/contexts/WebSocketContext';
+//import { useWebSocketContext } from '@/contexts/WebSocketContext'; May need this later for avoiding multiple connections and reusing the same connection
 
 export function useNotebookConnection({
   onOutput,
@@ -102,7 +102,7 @@ export function useNotebookConnection({
         case 'connector_created':
           console.log("Received connector_created")
           parsedData = data as OutputConnectorCreatedMessage;
-          console.log("Received connector_created", parsedData)
+          console.log("Received connector_created in useNotebookConnection", parsedData)
           onConnectorCreated?.(parsedData);
           break;
         case 'error':
